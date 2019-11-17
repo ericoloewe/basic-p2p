@@ -97,7 +97,6 @@ namespace console_app
             }
 
             peer.Connect(nodeHost, int.Parse(nodeIp));
-            Console.WriteLine($"Connected to {nodeHost} {nodeIp}");
         }
 
         private static void ListFiles()

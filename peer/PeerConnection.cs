@@ -6,11 +6,11 @@ namespace peer
 {
     internal class PeerConnection : IDisposable
     {
-        private Socket handler;
+        private Socket socket;
 
-        public PeerConnection(Socket handler)
+        public PeerConnection(Socket socket)
         {
-            this.handler = handler;
+            this.socket = socket;
         }
 
         internal string Receive()
@@ -19,9 +19,9 @@ namespace peer
             int bytesRec;
             var bytes = new byte[10240];
 
-            lock (handler)
+            lock (socket)
             {
-                bytesRec = handler.Receive(bytes);
+                bytesRec = socket.Receive(bytes);
             }
 
             message = Encoding.UTF8.GetString(bytes, 0, bytesRec);
@@ -31,16 +31,16 @@ namespace peer
 
         internal void Send(string message)
         {
-            lock (handler)
+            lock (socket)
             {
-                handler.Send(Encoding.ASCII.GetBytes($"{message}\n"));
+                socket.Send(Encoding.ASCII.GetBytes($"{message}\n"));
             }
         }
 
         public void Dispose()
         {
-            handler.Shutdown(SocketShutdown.Both);
-            handler.Close();
+            socket.Shutdown(SocketShutdown.Both);
+            socket.Close();
         }
     }
 }

@@ -13,7 +13,13 @@ namespace peer
 
         public void Connect(string nodeIp, int nodePort)
         {
-            throw new NotImplementedException();
+            var ipAddress = IPAddress.Parse(nodeIp);
+            var endpoint = new IPEndPoint(ipAddress, nodePort);
+            var sender = new Socket(ipAddress.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
+
+            sender.Connect(endpoint);
+            peers.Add(new PeerConnection(sender));
+            Console.WriteLine($"Connected to endpoint: {sender.RemoteEndPoint}");
         }
 
         public byte[] DownloadFile(string fileName)
@@ -24,10 +30,10 @@ namespace peer
         public async Task StartToAccept(string ip, int port)
         {
             IPAddress ipAddress = IPAddress.Parse(ip);
-            IPEndPoint localEndPoint = new IPEndPoint(ipAddress, port);
+            IPEndPoint endpoint = new IPEndPoint(ipAddress, port);
             Socket listener = new Socket(ipAddress.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
 
-            listener.Bind(localEndPoint);
+            listener.Bind(endpoint);
             listener.Listen(1000);
 
             var task = new Task(() =>
@@ -49,7 +55,7 @@ namespace peer
 
         private async Task AcceptConnection(Socket listener)
         {
-            Console.WriteLine("Start to accept");
+            Console.WriteLine($"Start to accept at: {listener.RemoteEndPoint}");
             var handler = await listener.AcceptAsync();
             var connection = new PeerConnection(handler);
 
