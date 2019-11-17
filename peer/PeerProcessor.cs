@@ -58,7 +58,7 @@ namespace peer
 
         public void Dispose()
         {
-            throw new NotImplementedException();
+            connection.Dispose();
         }
 
         private void HandleStop()
