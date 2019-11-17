@@ -7,17 +7,16 @@ namespace console_app
 {
     class Program
     {
-        private static Peer peer = new Peer();
-        private static bool hasStopped = false;
+        private static Peer peer;
         private static bool hasExited = false;
 
         static void Main(string[] args)
         {
+            Console.WriteLine("Feel free to type your command above: ");
+
             StartToAccept(args);
 
-            Console.WriteLine("Type your command: ");
-
-            while (!hasStopped && !hasExited)
+            while (!peer.Stopped && !hasExited)
             {
                 try
                 {
@@ -26,8 +25,8 @@ namespace console_app
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine(ex);
                     Console.WriteLine("There was a problem to process command");
+                    Console.WriteLine(ex);
                 }
             }
         }
@@ -39,14 +38,7 @@ namespace console_app
                 throw new ArgumentException($"You need to fill the ip and port of the peer");
             }
 
-            peer.StartToAccept(args[0], int.Parse(args[1])).ContinueWith(t => HandleStopToAccept());
-        }
-
-        private static void HandleStopToAccept()
-        {
-            Console.WriteLine("Stop to accept!");
-
-            hasStopped = true;
+            peer = new Peer(args[0], int.Parse(args[1]));
         }
 
         private static void ProcessCommand(string[] args)
@@ -69,7 +61,7 @@ namespace console_app
                     }
                 case "exit":
                     {
-                        hasExited = true;
+                        Exit();
                         break;
                     }
                 case "list":
@@ -104,14 +96,10 @@ namespace console_app
             peer.Connect(nodeHost, int.Parse(nodeIp));
         }
 
-        private static void ListFiles()
+        private static void Exit()
         {
-            Console.WriteLine("List of files: ");
-
-            foreach (var file in peer.Files)
-            {
-                Console.WriteLine($"- {file.Name}");
-            }
+            hasExited = true;
+            peer.Dispose();
         }
 
         private static void DownloadFile(string fileName, string downloadPath)
@@ -129,6 +117,16 @@ namespace console_app
             }
 
             Console.WriteLine($"The file {fileName} was downloaded to {downloadPath}");
+        }
+
+        private static void ListFiles()
+        {
+            Console.WriteLine("List of files: ");
+
+            foreach (var file in peer.Files)
+            {
+                Console.WriteLine($"- {file.Name}");
+            }
         }
 
         private static void UploadToNodes(string relativePath)
