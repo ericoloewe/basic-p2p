@@ -1,10 +1,11 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Net.Sockets;
 using System.Text;
 
 namespace peer
 {
-    internal class PeerConnection : IDisposable
+    public class PeerConnection : IDisposable
     {
         private Socket socket;
 
@@ -17,7 +18,7 @@ namespace peer
         {
             string message;
             int bytesRec;
-            var bytes = new byte[10240];
+            var bytes = new byte[1024];
 
             lock (socket)
             {
@@ -29,6 +30,19 @@ namespace peer
             return message.Trim();
         }
 
+        public byte[] ReceiveFile(int length)
+        {
+            int bytesRec;
+            var bytes = new byte[length];
+
+            lock (socket)
+            {
+                bytesRec = socket.Receive(bytes);
+            }
+
+            return bytes;
+        }
+
         internal void Send(string message)
         {
             lock (socket)
@@ -37,10 +51,23 @@ namespace peer
             }
         }
 
+        public void SendFile(byte[] fileBytes)
+        {
+            Send("begin-file");
+
+            lock (socket)
+            {
+                socket.Send(fileBytes);
+            }
+
+            Send("finish-file");
+        }
+
         public void Dispose()
         {
             socket.Shutdown(SocketShutdown.Both);
             socket.Close();
         }
+
     }
 }
