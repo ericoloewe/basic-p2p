@@ -9,6 +9,7 @@ namespace console_app
     {
         private static Peer peer = new Peer();
         private static bool hasStopped = false;
+        private static bool hasExited = false;
 
         static void Main(string[] args)
         {
@@ -16,12 +17,11 @@ namespace console_app
 
             Console.WriteLine("Type your command: ");
 
-            string line;
-
-            while ((line = Console.ReadLine()) != "exit" || !hasStopped)
+            while (!hasStopped && !hasExited)
             {
                 try
                 {
+                    string line = Console.ReadLine();
                     ProcessCommand(line.Split(" "));
                 }
                 catch (Exception ex)
@@ -65,6 +65,11 @@ namespace console_app
                 case "connect":
                     {
                         Connect(args[1], args[2]);
+                        break;
+                    }
+                case "exit":
+                    {
+                        hasExited = true;
                         break;
                     }
                 case "list":
