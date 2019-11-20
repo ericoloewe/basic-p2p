@@ -3,29 +3,34 @@
     public class PeerFile
     {
         public string Name { get; private set; }
+        public byte[] Slice { get; private set; }
 
         private readonly PeerProcessor processorOwner;
         private readonly Peer owner;
         private readonly int startIndex;
         private readonly int endIndex;
-        private readonly byte[] filePart;
 
-        public PeerFile(string fileName, Peer owner, int startIndex, int endIndex, byte[] filePart)
+        public PeerFile(string fileName, Peer owner, int startIndex, int endIndex, byte[] fileSlice)
         {
-            this.Name = fileName;
+            Name = fileName;
             this.owner = owner;
             this.startIndex = startIndex;
             this.endIndex = endIndex;
-            this.filePart = filePart;
+            Slice = fileSlice;
         }
 
-        public PeerFile(string fileName, PeerProcessor processorOwner, int startIndex, int endIndex, byte[] filePart)
+        public PeerFile(string fileName, PeerProcessor processorOwner, int startIndex, int endIndex, byte[] fileSlice)
         {
-            this.Name = fileName;
+            Name = fileName;
             this.processorOwner = processorOwner;
             this.startIndex = startIndex;
             this.endIndex = endIndex;
-            this.filePart = filePart;
+            Slice = fileSlice;
+        }
+
+        public override string ToString()
+        {
+            return $"{Name};{startIndex};{endIndex};{Slice.Length}";
         }
     }
 }

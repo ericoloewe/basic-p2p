@@ -19,6 +19,7 @@ namespace console_app
             {
                 try
                 {
+                    Console.Write("> ");
                     string line = Console.ReadLine();
                     ProcessCommand(line.Split(" "));
                 }
@@ -85,14 +86,14 @@ namespace console_app
             }
         }
 
-        private static void Connect(string nodeHost, string nodeIp)
+        private static void Connect(string nodeIp, string nodePort)
         {
-            if (string.IsNullOrEmpty(nodeHost) || string.IsNullOrEmpty(nodeIp))
+            if (string.IsNullOrEmpty(nodeIp) || string.IsNullOrEmpty(nodePort))
             {
                 throw new ArgumentException($"Invalid host or ip");
             }
 
-            peer.Connect(nodeHost, int.Parse(nodeIp));
+            peer.Connect(nodeIp, int.Parse(nodePort));
         }
 
         private static void Exit()

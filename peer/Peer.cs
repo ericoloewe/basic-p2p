@@ -15,6 +15,7 @@ namespace peer
 
         private IList<PeerProcessor> peers = new List<PeerProcessor>();
         private Socket listener;
+        private readonly Task cycle;
         private readonly string ip;
         private readonly int port;
         private readonly int owner;
@@ -23,17 +24,7 @@ namespace peer
         {
             Console.WriteLine($"Creating peer at endpoint {ip}:{port}");
 
-            StartToAccept(ip, port).ContinueWith(t =>
-            {
-                Console.WriteLine("Stop to accept!");
-                Stopped = true;
-
-                if (t.IsFaulted)
-                {
-                    Console.WriteLine("There was some problems!");
-                    Console.WriteLine(t.Exception);
-                }
-            });
+            cycle = StartToAccept(ip, port).ContinueWith(t => HandleStop());
 
             this.ip = ip;
             this.port = port;
@@ -49,7 +40,7 @@ namespace peer
 
             var connection = new PeerConnection(sender);
 
-            peers.Add(new PeerProcessor(connection, p => peers.Remove(p)));
+            CreateProcessor(connection);
             Console.WriteLine($"Connected to endpoint: {sender.RemoteEndPoint}");
         }
 
@@ -94,9 +85,27 @@ namespace peer
             Console.WriteLine($"Start to accept at: {listener.LocalEndPoint}");
             var handler = await listener.AcceptAsync();
             var connection = new PeerConnection(handler);
+
+            CreateProcessor(connection);
+        }
+
+        private void CreateProcessor(PeerConnection connection)
+        {
             var processor = new PeerProcessor(connection, p => peers.Remove(p));
 
             peers.Add(processor);
+        }
+
+        private void HandleStop()
+        {
+            Console.WriteLine("Stop to accept!");
+            Stopped = true;
+
+            if (cycle.IsFaulted)
+            {
+                Console.WriteLine("There was some problems!");
+                Console.WriteLine(cycle.Exception);
+            }
         }
 
         private async Task StartToAccept(string ip, int port)

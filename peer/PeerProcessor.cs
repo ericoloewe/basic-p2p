@@ -53,7 +53,7 @@ namespace peer
 
         public void SendFile(PeerFile file)
         {
-            throw new NotImplementedException();
+            connection.SendFile(file);
         }
 
         public void Dispose()

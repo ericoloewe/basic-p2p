@@ -51,13 +51,13 @@ namespace peer
             }
         }
 
-        public void SendFile(byte[] fileBytes)
+        public void SendFile(PeerFile file)
         {
-            Send("begin-file");
+            Send($"begin-file;{file}");
 
             lock (socket)
             {
-                socket.Send(fileBytes);
+                socket.Send(file.Slice);
             }
 
             Send("finish-file");
