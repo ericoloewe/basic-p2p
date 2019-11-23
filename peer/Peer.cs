@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.IO;
 using System.Net;
 using System.Net.Sockets;
@@ -8,17 +7,17 @@ using System.Threading.Tasks;
 
 namespace peer
 {
-    public class Peer : IDisposable
+    public partial class Peer : IDisposable
     {
-        public IEnumerable<PeerFile> Files { get; }
+        public IList<PeerFile> Files { get; }
         public bool Stopped { get; private set; }
 
-        private IList<PeerProcessor> peers = new List<PeerProcessor>();
+        private IList<PeerProcessor> processors = new List<PeerProcessor>();
         private Socket listener;
         private readonly Task cycle;
         private readonly string ip;
         private readonly int port;
-        private readonly int owner;
+        private readonly PeerInfo owner;
 
         public Peer(string ip, int port)
         {
@@ -28,51 +27,21 @@ namespace peer
 
             this.ip = ip;
             this.port = port;
+            owner = new PeerInfo(port);
         }
 
-        public void Connect(string nodeIp, int nodePort)
+        private PeerFile GetFileByStartAndEndIndexes(string filePath, List<byte> bytes, int startIndex, int endIndex)
         {
-            var ipAddress = IPAddress.Parse(nodeIp);
-            var endpoint = new IPEndPoint(ipAddress, nodePort);
-            var sender = new Socket(ipAddress.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
+            var list = bytes.GetRange(startIndex, endIndex - startIndex);
+            var fileName = Path.GetFileName(filePath);
+            var file = new PeerFile(fileName, owner, startIndex, endIndex, list.ToArray());
 
-            sender.Connect(endpoint);
-
-            var connection = new PeerConnection(sender);
-
-            CreateProcessor(connection);
-            Console.WriteLine($"Connected to endpoint: {sender.RemoteEndPoint}");
-        }
-
-        public byte[] DownloadFile(string fileName)
-        {
-            throw new NotImplementedException();
-        }
-
-        public void UploadFile(string filePath)
-        {
-            var bytes = File.ReadAllBytes(filePath).ToList();
-            var numberOfFragments = peers.Count;
-            var fragmentSize = (bytes.Count / peers.Count);
-
-            for (int i = 0; i < numberOfFragments; i++)
-            {
-                var peer = peers[i];
-                var startIndex = fragmentSize * i;
-                var endIndex = fragmentSize * (i + 1);
-                var list = bytes.GetRange(startIndex, endIndex - startIndex);
-
-                var fileName = Path.GetFileName(filePath);
-
-                var file = new PeerFile(fileName, this, startIndex, endIndex, list.ToArray());
-
-                peer.SendFile(file);
-            }
+            return file;
         }
 
         public void Dispose()
         {
-            foreach (var connection in peers)
+            foreach (var connection in processors)
             {
                 connection.Dispose();
             }
@@ -92,9 +61,15 @@ namespace peer
 
         private void CreateProcessor(PeerConnection connection)
         {
-            var processor = new PeerProcessor(connection, p => peers.Remove(p));
+            var processor = new PeerProcessor(connection, p => processors.Remove(p));
 
-            peers.Add(processor);
+            processor.OnReceive = f => SaveFile(f);
+            processors.Add(processor);
+        }
+
+        private int GetNumberOfFragments()
+        {
+            return 4;
         }
 
         private void HandleStop()
@@ -107,6 +82,11 @@ namespace peer
                 Console.WriteLine("There was some problems!");
                 Console.WriteLine(cycle.Exception);
             }
+        }
+
+        private void SaveFile(PeerFile file)
+        {
+            Files.Add(file);
         }
 
         private async Task StartToAccept(string ip, int port)

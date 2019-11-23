@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Net.Sockets;
 using System.Threading.Tasks;
 
@@ -8,15 +7,40 @@ namespace peer
     public class PeerProcessor : IDisposable
     {
         public Action<PeerProcessor> OnStop { private get; set; }
+        public Action<PeerFile> OnReceive { get; internal set; }
         private PeerConnection connection;
         private Task cycle;
-        public IList<PeerFile> Files { get; }
 
         public PeerProcessor(PeerConnection connection, Action<PeerProcessor> OnStop)
         {
             this.connection = connection;
             this.OnStop = OnStop;
             cycle = StartCycle().ContinueWith(t => HandleStop());
+        }
+
+        public int GetNumberOfConnections()
+        {
+            throw new NotImplementedException();
+        }
+
+        public void SendFile(PeerFile file)
+        {
+            connection.SendFile(file);
+        }
+
+        public void Dispose()
+        {
+            connection.Dispose();
+        }
+
+        private void HandleStop()
+        {
+            OnStop.Invoke(this);
+
+            if (cycle.Status == TaskStatus.Running)
+            {
+                cycle.Dispose();
+            }
         }
 
         private async Task StartCycle()
@@ -51,26 +75,6 @@ namespace peer
             await task;
         }
 
-        public void SendFile(PeerFile file)
-        {
-            connection.SendFile(file);
-        }
-
-        public void Dispose()
-        {
-            connection.Dispose();
-        }
-
-        private void HandleStop()
-        {
-            OnStop.Invoke(this);
-
-            if (cycle.Status == TaskStatus.Running)
-            {
-                cycle.Dispose();
-            }
-        }
-
         private string ReceiveAndProccessCommand()
         {
             var command = connection.Receive();
@@ -86,12 +90,13 @@ namespace peer
                     }
                 case "begin-file":
                     {
-                        string fileName = commandSplit[1];
-                        int startIndex = int.Parse(commandSplit[2]);
-                        int endIndex = int.Parse(commandSplit[3]);
-                        int length = int.Parse(commandSplit[4]);
+                        var fileName = commandSplit[1];
+                        var startIndex = int.Parse(commandSplit[2]);
+                        var endIndex = int.Parse(commandSplit[3]);
+                        var length = int.Parse(commandSplit[4]);
+                        var info = PeerInfo.FromString(commandSplit[5]);
 
-                        ReceiveFile(fileName, startIndex, endIndex, length);
+                        ReceiveFile(fileName, startIndex, endIndex, length, info);
                         break;
                     }
                 default:
@@ -103,18 +108,20 @@ namespace peer
             return parsedCommand;
         }
 
-        private void ReceiveFile(string fileName, int startIndex, int endIndex, int length)
+        private void ReceiveFile(string fileName, int startIndex, int endIndex, int length, PeerInfo info)
         {
             var fileBytes = connection.ReceiveFile(length);
 
-            Files.Add(new PeerFile(fileName, this, startIndex, endIndex, fileBytes));
+            OnReceive(new PeerFile(fileName, info, startIndex, endIndex, fileBytes));
 
             var endMessage = connection.Receive();
 
-            if (endMessage.Trim() != "finish-file")
+            if (endMessage.Trim() != "end-file")
             {
                 throw new InvalidOperationException("File was send by a wrong way");
             }
+
+            Console.WriteLine($"Receive file => {fileName}, {startIndex}, {endIndex}, {length}");
         }
     }
 }

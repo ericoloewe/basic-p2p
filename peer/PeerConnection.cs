@@ -60,7 +60,7 @@ namespace peer
                 socket.Send(file.Slice);
             }
 
-            Send("finish-file");
+            Send("end-file");
         }
 
         public void Dispose()
