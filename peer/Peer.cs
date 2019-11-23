@@ -52,11 +52,12 @@ namespace peer
         public void UploadFile(string filePath)
         {
             var bytes = File.ReadAllBytes(filePath).ToList();
+            var numberOfFragments = peers.Count;
+            var fragmentSize = (bytes.Count / peers.Count);
 
-            for (int i = 0; i < peers.Count; i++)
+            for (int i = 0; i < numberOfFragments; i++)
             {
                 var peer = peers[i];
-                var fragmentSize = (bytes.Count / peers.Count);
                 var startIndex = fragmentSize * i;
                 var endIndex = fragmentSize * (i + 1);
                 var list = bytes.GetRange(startIndex, endIndex - startIndex);
