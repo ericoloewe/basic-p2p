@@ -14,7 +14,7 @@ namespace peer
             this.socket = socket;
         }
 
-        internal string Receive()
+        public string Receive()
         {
             string message;
             int bytesRec;
@@ -43,7 +43,7 @@ namespace peer
             return bytes;
         }
 
-        internal void Send(string message)
+        public void Send(string message)
         {
             lock (socket)
             {

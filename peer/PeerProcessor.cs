@@ -6,21 +6,23 @@ namespace peer
 {
     public class PeerProcessor : IDisposable
     {
-        public Action<PeerProcessor> OnStop { private get; set; }
-        public Action<PeerFile> OnReceive { get; internal set; }
-        private PeerConnection connection;
-        private Task cycle;
+        public Action OnStop { protected get; set; }
+        public Action<PeerFile> OnReceive { protected get; set; }
 
-        public PeerProcessor(PeerConnection connection, Action<PeerProcessor> OnStop)
+        protected PeerConnection connection;
+        protected Task cycle;
+
+        protected PeerProcessor(PeerConnection connection)
         {
             this.connection = connection;
-            this.OnStop = OnStop;
             cycle = StartCycle().ContinueWith(t => HandleStop());
         }
 
         public int GetNumberOfConnections()
         {
-            throw new NotImplementedException();
+            connection.Send("connections");
+
+            return int.Parse(connection.Receive());
         }
 
         public void SendFile(PeerFile file)
@@ -33,9 +35,9 @@ namespace peer
             connection.Dispose();
         }
 
-        private void HandleStop()
+        protected void HandleStop()
         {
-            OnStop.Invoke(this);
+            OnStop();
 
             if (cycle.Status == TaskStatus.Running)
             {
@@ -43,7 +45,7 @@ namespace peer
             }
         }
 
-        private async Task StartCycle()
+        protected async Task StartCycle()
         {
             var task = new Task(() =>
             {
@@ -75,7 +77,7 @@ namespace peer
             await task;
         }
 
-        private string ReceiveAndProccessCommand()
+        protected virtual string ReceiveAndProccessCommand()
         {
             var command = connection.Receive();
             string[] commandSplit = command.Trim().Split(';');
@@ -99,16 +101,12 @@ namespace peer
                         ReceiveFile(fileName, startIndex, endIndex, length, info);
                         break;
                     }
-                default:
-                    {
-                        throw new ArgumentException($"Invalid command: {command}");
-                    }
             }
 
             return parsedCommand;
         }
 
-        private void ReceiveFile(string fileName, int startIndex, int endIndex, int length, PeerInfo info)
+        protected void ReceiveFile(string fileName, int startIndex, int endIndex, int length, PeerInfo info)
         {
             var fileBytes = connection.ReceiveFile(length);
 

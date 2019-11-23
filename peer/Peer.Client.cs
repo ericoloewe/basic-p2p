@@ -17,8 +17,12 @@ namespace peer
             sender.Connect(endpoint);
 
             var connection = new PeerConnection(sender);
+            var processor = new PeerProcessorServer(connection);
 
-            CreateProcessor(connection);
+            processor.OnReceive = f => SaveFile(f);
+            processor.OnStop = () => processors.Remove(processor);
+            processors.Add(processor);
+
             Console.WriteLine($"Connected to endpoint: {sender.RemoteEndPoint}");
         }
 

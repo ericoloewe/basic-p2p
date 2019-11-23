@@ -55,15 +55,10 @@ namespace peer
             Console.WriteLine($"Start to accept at: {listener.LocalEndPoint}");
             var handler = await listener.AcceptAsync();
             var connection = new PeerConnection(handler);
-
-            CreateProcessor(connection);
-        }
-
-        private void CreateProcessor(PeerConnection connection)
-        {
-            var processor = new PeerProcessor(connection, p => processors.Remove(p));
+            var processor = new PeerProcessorClient(connection);
 
             processor.OnReceive = f => SaveFile(f);
+            processor.OnStop = () => processors.Remove(processor);
             processors.Add(processor);
         }
 
