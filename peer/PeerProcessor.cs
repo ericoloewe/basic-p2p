@@ -7,14 +7,16 @@ namespace peer
     public class PeerProcessor : IDisposable
     {
         public Action OnStop { protected get; set; }
-        public Action<PeerFile> OnReceive { protected get; set; }
+        public Action<PeerFile> OnReceiveFile { protected get; set; }
 
-        protected PeerConnection connection;
-        protected Task cycle;
+        private readonly PeerConnection connection;
+        private readonly Task cycle;
+        private readonly Peer serverInstance;
 
-        protected PeerProcessor(PeerConnection connection)
+        public PeerProcessor(PeerConnection connection, Peer serverInstance)
         {
             this.connection = connection;
+            this.serverInstance = serverInstance;
             cycle = StartCycle().ContinueWith(t => HandleStop());
         }
 
@@ -101,6 +103,13 @@ namespace peer
                         ReceiveFile(fileName, startIndex, endIndex, length, info);
                         break;
                     }
+                case "connections":
+                    {
+                        var numberOfConnections = serverInstance.GetNumberOfConnectionsWithoutProcesor(this);
+
+                        connection.Send($"{numberOfConnections}");
+                        break;
+                    }
             }
 
             return parsedCommand;
@@ -110,7 +119,7 @@ namespace peer
         {
             var fileBytes = connection.ReceiveFile(length);
 
-            OnReceive(new PeerFile(fileName, info, startIndex, endIndex, fileBytes));
+            OnReceiveFile(new PeerFile(fileName, info, startIndex, endIndex, fileBytes));
 
             var endMessage = connection.Receive();
 

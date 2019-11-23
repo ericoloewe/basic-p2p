@@ -30,13 +30,19 @@ namespace peer
             owner = new PeerInfo(port);
         }
 
-        private PeerFile GetFileByStartAndEndIndexes(string filePath, List<byte> bytes, int startIndex, int endIndex)
+        public int GetNumberOfConnectionsWithoutProcesor(PeerProcessor requester)
         {
-            var list = bytes.GetRange(startIndex, endIndex - startIndex);
-            var fileName = Path.GetFileName(filePath);
-            var file = new PeerFile(fileName, owner, startIndex, endIndex, list.ToArray());
+            var numberOfConnections = 0;
 
-            return file;
+            foreach (var processor in processors)
+            {
+                if (processor != requester)
+                {
+                    numberOfConnections += processor.GetNumberOfConnections() + 1;
+                }
+            }
+
+            return numberOfConnections;
         }
 
         public void Dispose()
@@ -55,11 +61,25 @@ namespace peer
             Console.WriteLine($"Start to accept at: {listener.LocalEndPoint}");
             var handler = await listener.AcceptAsync();
             var connection = new PeerConnection(handler);
-            var processor = new PeerProcessorClient(connection);
+            CreateProcessor(connection);
+        }
 
-            processor.OnReceive = f => SaveFile(f);
+        private void CreateProcessor(PeerConnection connection)
+        {
+            var processor = new PeerProcessor(connection, this);
+
+            processor.OnReceiveFile = f => SaveFile(f);
             processor.OnStop = () => processors.Remove(processor);
             processors.Add(processor);
+        }
+
+        private PeerFile GetFileByStartAndEndIndexes(string filePath, List<byte> bytes, int startIndex, int endIndex)
+        {
+            var list = bytes.GetRange(startIndex, endIndex - startIndex);
+            var fileName = Path.GetFileName(filePath);
+            var file = new PeerFile(fileName, owner, startIndex, endIndex, list.ToArray());
+
+            return file;
         }
 
         private int GetNumberOfFragments()
