@@ -20,11 +20,7 @@ namespace peer
             int bytesRec;
             var bytes = new byte[1024];
 
-            lock (socket)
-            {
-                bytesRec = socket.Receive(bytes);
-            }
-
+            bytesRec = socket.Receive(bytes);
             message = Encoding.UTF8.GetString(bytes, 0, bytesRec);
 
             return message.Trim();
@@ -35,32 +31,34 @@ namespace peer
             int bytesRec;
             var bytes = new byte[length];
 
-            lock (socket)
-            {
-                bytesRec = socket.Receive(bytes);
-            }
+            bytesRec = socket.Receive(bytes);
 
             return bytes;
         }
 
         public void Send(string message)
         {
+            socket.Send(Encoding.ASCII.GetBytes($"{message}\n"));
+        }
+
+        public string SendAndReceive(string message)
+        {
             lock (socket)
             {
-                socket.Send(Encoding.ASCII.GetBytes($"{message}\n"));
+                Send(message);
+
+                return Receive();
             }
         }
 
         public void SendFile(PeerFile file)
         {
-            Send($"begin-file;{file}");
-
             lock (socket)
             {
+                Send($"begin-file;{file}");
                 socket.Send(file.Slice);
+                Send("end-file");
             }
-
-            Send("end-file");
         }
 
         public void Dispose()
@@ -68,6 +66,5 @@ namespace peer
             socket.Shutdown(SocketShutdown.Both);
             socket.Close();
         }
-
     }
 }
