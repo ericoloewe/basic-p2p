@@ -36,7 +36,8 @@ namespace peer
         public void UploadFile(string filePath)
         {
             var bytes = File.ReadAllBytes(filePath).ToList();
-            var fragmentSize = (bytes.Count / processors.Count);
+            int peersAmount = GetNumberOfFragments();
+            var fragmentSize = (bytes.Count / peersAmount);
             var currentSlice = 0;
 
             var startIndex = fragmentSize * currentSlice;

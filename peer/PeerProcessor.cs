@@ -40,11 +40,6 @@ namespace peer
         protected void HandleStop()
         {
             OnStop();
-
-            if (cycle.Status == TaskStatus.Running)
-            {
-                cycle.Dispose();
-            }
         }
 
         protected async Task StartCycle()
@@ -84,6 +79,8 @@ namespace peer
             var command = connection.Receive();
             string[] commandSplit = command.Trim().Split(';');
             var parsedCommand = commandSplit[0].Trim().ToLower();
+
+            Console.WriteLine($"Receive command {parsedCommand}");
 
             switch (parsedCommand)
             {
