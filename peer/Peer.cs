@@ -9,15 +9,15 @@ namespace peer
 {
     public partial class Peer : IDisposable
     {
-        public IList<PeerFile> Files { get; }
         public bool Stopped { get; private set; }
 
-        private IList<PeerProcessor> processors = new List<PeerProcessor>();
-        private Socket listener;
+        private readonly IList<PeerProcessor> processors = new List<PeerProcessor>();
+        private readonly IList<PeerFile> files = new List<PeerFile>();
         private readonly Task cycle;
         private readonly string ip;
         private readonly int port;
         private readonly PeerInfo owner;
+        private Socket listener;
 
         public Peer(string ip, int port)
         {
@@ -101,7 +101,7 @@ namespace peer
 
         private void SaveFile(PeerFile file)
         {
-            Files.Add(file);
+            files.Add(file);
         }
 
         private async Task StartToAccept(string ip, int port)

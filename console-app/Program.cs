@@ -123,7 +123,7 @@ namespace console_app
         {
             Console.WriteLine("List of files: ");
 
-            foreach (var file in peer.Files)
+            foreach (var file in peer.GetFiles())
             {
                 Console.WriteLine($"- {file.Name}");
             }

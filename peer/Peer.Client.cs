@@ -3,6 +3,7 @@ using System.Linq;
 using System.IO;
 using System.Net;
 using System.Net.Sockets;
+using System.Collections.Generic;
 
 namespace peer
 {
@@ -27,6 +28,11 @@ namespace peer
             throw new NotImplementedException();
         }
 
+        public IEnumerable<PeerFile> GetFiles()
+        {
+            throw new NotImplementedException();
+        }
+
         public void UploadFile(string filePath)
         {
             var bytes = File.ReadAllBytes(filePath).ToList();
@@ -42,6 +48,8 @@ namespace peer
             foreach (var peerProcessor in processors)
             {
                 var numberOfConnections = peerProcessor.GetNumberOfConnections();
+
+                Console.WriteLine($"numberOfConnections {numberOfConnections}");
 
                 startIndex = fragmentSize * currentSlice;
                 currentSlice += numberOfConnections;
