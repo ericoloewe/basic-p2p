@@ -66,7 +66,7 @@ namespace peer
 
                 messages.Enqueue(new PeerMessage("welcome"));
 
-                while (!command.StartsWith("exit") || !command.StartsWith("stop"))
+                while (!command.StartsWith("exit") && !command.StartsWith("stop"))
                 {
                     command = SafeAndSyncReceiveAndProccessCommand();
                 }
