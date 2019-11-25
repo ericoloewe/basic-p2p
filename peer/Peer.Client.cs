@@ -31,7 +31,7 @@ namespace peer
 
         public IEnumerable<PeerFile> GetFiles()
         {
-            throw new NotImplementedException();
+            return files;
         }
 
         public async Task UploadFile(string filePath)
