@@ -71,7 +71,12 @@ namespace peer
             var processor = new PeerProcessor(connection, this);
 
             processor.OnReceiveFile = f => SaveFile(f);
-            processor.OnStop = () => processors.Remove(processor);
+            processor.OnStop = () =>
+            {
+                processor.Dispose();
+                processors.Remove(processor);
+            };
+
             processors.Add(processor);
         }
 
