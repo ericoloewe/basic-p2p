@@ -59,7 +59,7 @@ namespace peer
             {
                 var command = "";
 
-                connection.Send("welcome");
+                messages.Enqueue(new PeerMessage("welcome"));
 
                 while (!command.StartsWith("exit") || !command.StartsWith("stop"))
                 {
@@ -104,10 +104,13 @@ namespace peer
         }
         protected async Task<string> ReceiveAndProccessCommand()
         {
+            var nextMessage = GetNextMessage();
+
+            SendMessage(nextMessage);
+
             var command = connection.Receive();
             string[] commandSplit = command.Trim().Split(';');
             var parsedCommand = commandSplit[0].Trim().ToLower();
-            var nextMessage = GetNextMessage();
 
             Console.WriteLine($"Receive command {parsedCommand}");
 
@@ -127,7 +130,7 @@ namespace peer
                         var info = PeerInfo.FromString(commandSplit[5]);
 
                         ReceiveFile(fileName, startIndex, endIndex, length, info);
-                        nextMessage = new PeerMessage("upload-file-ok");
+                        messages.Enqueue(new PeerMessage("upload-file-ok"));
                         break;
                     }
                 case "connections":
@@ -142,7 +145,7 @@ namespace peer
                         {
                             var numberOfConnections = await serverInstance.GetNumberOfConnectionsWithoutProcesor(this);
 
-                            nextMessage = new PeerMessage($"connections;{numberOfConnections}");
+                            messages.Enqueue(new PeerMessage($"connections;{numberOfConnections}"));
                         }
                         break;
                     }
@@ -151,15 +154,6 @@ namespace peer
                     break;
                 default:
                     throw new ArgumentException($"Invalid command {parsedCommand}");
-            }
-
-            if (nextMessage.HasFile)
-            {
-                connection.SendFile(nextMessage.File);
-            }
-            else
-            {
-                connection.Send(nextMessage.ToString());
             }
 
             return parsedCommand;
@@ -175,6 +169,18 @@ namespace peer
             }
 
             return message;
+        }
+
+        private void SendMessage(PeerMessage message)
+        {
+            if (message.HasFile)
+            {
+                connection.SendFile(message.File);
+            }
+            else
+            {
+                connection.Send(message.ToString());
+            }
         }
 
         protected void ReceiveFile(string fileName, int startIndex, int endIndex, int length, PeerInfo info)
