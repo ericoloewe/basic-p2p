@@ -16,29 +16,38 @@ namespace peer
 
         public string Receive()
         {
-            string message;
-            int bytesRec;
-            var bytes = new byte[1024];
+            lock (socket)
+            {
+                string message;
+                int bytesRec;
+                var bytes = new byte[1024];
 
-            bytesRec = socket.Receive(bytes);
-            message = Encoding.UTF8.GetString(bytes, 0, bytesRec);
+                bytesRec = socket.Receive(bytes);
+                message = Encoding.UTF8.GetString(bytes, 0, bytesRec);
 
-            return message.Trim();
+                return message.Trim();
+            }
         }
 
         public byte[] ReceiveFile(int length)
         {
-            int bytesRec;
-            var bytes = new byte[length];
+            lock (socket)
+            {
+                int bytesRec;
+                var bytes = new byte[length];
 
-            bytesRec = socket.Receive(bytes);
+                bytesRec = socket.Receive(bytes);
 
-            return bytes;
+                return bytes;
+            }
         }
 
         public void Send(string message)
         {
-            socket.Send(Encoding.ASCII.GetBytes($"{message}\n"));
+            lock (socket)
+            {
+                socket.Send(Encoding.ASCII.GetBytes($"{message}\n"));
+            }
         }
 
         public string SendAndReceive(string message)

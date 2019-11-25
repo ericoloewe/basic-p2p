@@ -30,7 +30,7 @@ namespace peer
             owner = new PeerInfo(port);
         }
 
-        public int GetNumberOfConnectionsWithoutProcesor(PeerProcessor requester)
+        public async Task<int> GetNumberOfConnectionsWithoutProcesor(PeerProcessor requester)
         {
             var numberOfConnections = 0;
 
@@ -38,7 +38,9 @@ namespace peer
             {
                 if (processor != requester)
                 {
-                    numberOfConnections += processor.GetNumberOfConnections() + 1;
+                    var amountOfProcessorConnections = await processor.GetNumberOfConnections();
+
+                    numberOfConnections += amountOfProcessorConnections + 1;
                 }
             }
 

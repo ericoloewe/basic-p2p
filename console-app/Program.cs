@@ -138,7 +138,9 @@ namespace console_app
 
             string filePath = Path.GetFullPath(relativePath);
 
-            peer.UploadFile(filePath);
+            var task = peer.UploadFile(filePath);
+
+            task.Wait();
             Console.WriteLine($"The file {filePath} was uploaded");
         }
     }

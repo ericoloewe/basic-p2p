@@ -4,6 +4,7 @@ using System.IO;
 using System.Net;
 using System.Net.Sockets;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace peer
 {
@@ -33,7 +34,7 @@ namespace peer
             throw new NotImplementedException();
         }
 
-        public void UploadFile(string filePath)
+        public async Task UploadFile(string filePath)
         {
             var bytes = File.ReadAllBytes(filePath).ToList();
             int peersAmount = GetNumberOfFragments();
@@ -48,7 +49,7 @@ namespace peer
 
             foreach (var peerProcessor in processors)
             {
-                var numberOfConnections = peerProcessor.GetNumberOfConnections();
+                var numberOfConnections = await peerProcessor.GetNumberOfConnections();
 
                 Console.WriteLine($"numberOfConnections {numberOfConnections}");
 
