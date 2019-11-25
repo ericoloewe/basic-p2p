@@ -113,11 +113,11 @@ namespace peer
         }
         protected async Task<string> ReceiveAndProccessCommand()
         {
-            var nextMessage = GetNextMessage();
             string parsedCommand;
 
             if (IsWaitingForFile)
             {
+                SendMessage(new PeerMessage("started-to-receive-file"));
                 var fileName = lastFileInfoCommandSplit[1];
                 var startIndex = int.Parse(lastFileInfoCommandSplit[2]);
                 var endIndex = int.Parse(lastFileInfoCommandSplit[3]);
@@ -129,6 +129,8 @@ namespace peer
             }
             else
             {
+                var nextMessage = GetNextMessage();
+
                 SendMessage(nextMessage);
 
                 var command = connection.Receive();
@@ -180,6 +182,7 @@ namespace peer
                     }
                 case "welcome":
                 case "no-message":
+                case "started-to-receive-file":
                 case "upload-file-ok":
                     break;
                 default:
