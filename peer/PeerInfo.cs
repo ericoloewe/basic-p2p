@@ -6,14 +6,19 @@ namespace peer
     {
         public int Id { get; }
 
+        public static PeerInfo FromString(string str)
+        {
+            return new PeerInfo(int.Parse(str));
+        }
+
         public PeerInfo(int id)
         {
             Id = id;
         }
 
-        internal static PeerInfo FromString(string v)
+        public override string ToString()
         {
-            throw new NotImplementedException();
+            return $"{Id}";
         }
     }
 }

@@ -29,7 +29,7 @@ namespace peer
             }
         }
 
-        public byte[] ReceiveFile(int length)
+        public byte[] ReceiveBytes(int length)
         {
             lock (socket)
             {
@@ -50,23 +50,11 @@ namespace peer
             }
         }
 
-        public string SendAndReceive(string message)
+        public void SendBytes(byte[] bytes)
         {
             lock (socket)
             {
-                Send(message);
-
-                return Receive();
-            }
-        }
-
-        public void SendFile(PeerFile file)
-        {
-            lock (socket)
-            {
-                Send($"begin-file;{file}");
-                socket.Send(file.Slice);
-                Send("end-file");
+                socket.Send(bytes);
             }
         }
 

@@ -6,7 +6,6 @@
         public byte[] Slice { get; }
         public PeerInfo Owner { get; }
 
-        private readonly PeerProcessor processorOwner;
         private readonly int startIndex;
         private readonly int endIndex;
 
@@ -21,7 +20,7 @@
 
         public override string ToString()
         {
-            return $"{Name};{startIndex};{endIndex};{Slice.Length}";
+            return $"{Name};{startIndex};{endIndex};{Slice.Length};{Owner}";
         }
     }
 }

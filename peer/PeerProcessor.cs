@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
@@ -11,12 +12,14 @@ namespace peer
         public Action OnStop { protected get; set; }
         public Action<PeerFile> OnReceiveFile { protected get; set; }
         public Action<int> OnReceiveNumberOfConnections { protected get; set; }
+        public bool IsWaitingForFile { get { return lastFileInfoCommandSplit != null; } }
 
         private const int TIME_TO_WAIT_FOR_NEXT_MESSAGE = 5000;
         private readonly PeerConnection connection;
         private readonly Task cycle;
         private readonly Peer serverInstance;
         private readonly Queue<PeerMessage> messages = new Queue<PeerMessage>();
+        private string[] lastFileInfoCommandSplit;
 
         public PeerProcessor(PeerConnection connection, Peer serverInstance)
         {
@@ -40,7 +43,9 @@ namespace peer
 
         public void SendFile(PeerFile file)
         {
+            messages.Enqueue(new PeerMessage($"begin-file;{file}"));
             messages.Enqueue(new PeerMessage(file));
+            messages.Enqueue(new PeerMessage("end-file"));
         }
 
         public void Dispose()
@@ -81,6 +86,11 @@ namespace peer
 
                 task.Wait();
 
+                if (task.Exception != null)
+                {
+                    throw task.Exception;
+                }
+
                 command = task.Result;
 
                 if (command == "no-message")
@@ -88,16 +98,15 @@ namespace peer
                     Thread.Sleep(TIME_TO_WAIT_FOR_NEXT_MESSAGE);
                 }
             }
-            catch (SocketException ex)
+            catch (AggregateException ex)
             {
                 Console.WriteLine("Stack: ");
                 Console.WriteLine(ex);
-                command = "stop";
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine("Stack: ");
-                Console.WriteLine(ex);
+
+                if (ex.InnerExceptions.Any(e => e is SocketException))
+                {
+                    command = "stop";
+                }
             }
 
             return command;
@@ -105,15 +114,37 @@ namespace peer
         protected async Task<string> ReceiveAndProccessCommand()
         {
             var nextMessage = GetNextMessage();
+            string parsedCommand;
 
-            SendMessage(nextMessage);
+            if (IsWaitingForFile)
+            {
+                var fileName = lastFileInfoCommandSplit[1];
+                var startIndex = int.Parse(lastFileInfoCommandSplit[2]);
+                var endIndex = int.Parse(lastFileInfoCommandSplit[3]);
+                var length = int.Parse(lastFileInfoCommandSplit[4]);
+                var info = PeerInfo.FromString(lastFileInfoCommandSplit[5]);
 
-            var command = connection.Receive();
-            string[] commandSplit = command.Trim().Split(';');
-            var parsedCommand = commandSplit[0].Trim().ToLower();
+                ReceiveFile(fileName, startIndex, endIndex, length, info);
+                parsedCommand = "file";
+            }
+            else
+            {
+                SendMessage(nextMessage);
 
-            Console.WriteLine($"Receive command {parsedCommand}");
+                var command = connection.Receive();
+                string[] commandSplit = command.Trim().Split(';');
+                parsedCommand = commandSplit[0].Trim().ToLower();
 
+                Console.WriteLine($"Receive command {parsedCommand}");
+
+                await ProcessParsedCommand(commandSplit, parsedCommand);
+            }
+
+            return parsedCommand;
+        }
+
+        private async Task ProcessParsedCommand(string[] commandSplit, string parsedCommand)
+        {
             switch (parsedCommand)
             {
                 case "exit":
@@ -123,13 +154,11 @@ namespace peer
                     }
                 case "begin-file":
                     {
-                        var fileName = commandSplit[1];
-                        var startIndex = int.Parse(commandSplit[2]);
-                        var endIndex = int.Parse(commandSplit[3]);
-                        var length = int.Parse(commandSplit[4]);
-                        var info = PeerInfo.FromString(commandSplit[5]);
-
-                        ReceiveFile(fileName, startIndex, endIndex, length, info);
+                        lastFileInfoCommandSplit = commandSplit;
+                        break;
+                    }
+                case "end-file":
+                    {
                         messages.Enqueue(new PeerMessage("upload-file-ok"));
                         break;
                     }
@@ -151,12 +180,11 @@ namespace peer
                     }
                 case "welcome":
                 case "no-message":
+                case "upload-file-ok":
                     break;
                 default:
                     throw new ArgumentException($"Invalid command {parsedCommand}");
             }
-
-            return parsedCommand;
         }
 
         private PeerMessage GetNextMessage()
@@ -175,7 +203,7 @@ namespace peer
         {
             if (message.HasFile)
             {
-                connection.SendFile(message.File);
+                connection.SendBytes(message.File.Slice);
             }
             else
             {
@@ -185,18 +213,11 @@ namespace peer
 
         protected void ReceiveFile(string fileName, int startIndex, int endIndex, int length, PeerInfo info)
         {
-            var fileBytes = connection.ReceiveFile(length);
+            var fileBytes = connection.ReceiveBytes(length);
 
             OnReceiveFile(new PeerFile(fileName, info, startIndex, endIndex, fileBytes));
-
-            var endMessage = connection.Receive();
-
-            if (endMessage.Trim() != "end-file")
-            {
-                throw new InvalidOperationException("File was send by a wrong way");
-            }
-
             Console.WriteLine($"Receive file => {fileName}, {startIndex}, {endIndex}, {length}");
+            lastFileInfoCommandSplit = null;
         }
     }
 }
