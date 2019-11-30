@@ -13,48 +13,18 @@ namespace peer
             this.socket = socket;
         }
 
-        public string Receive()
+        public PeerMessage Receive()
         {
-            lock (socket)
-            {
-                string message;
-                int bytesRec;
-                var bytes = new byte[1024];
+            var bytes = new byte[1024];
 
-                bytesRec = socket.Receive(bytes);
-                message = Encoding.UTF8.GetString(bytes, 0, bytesRec);
+            socket.Receive(bytes);
 
-                return message.Trim();
-            }
+            return new PeerMessage(bytes);
         }
 
-        public byte[] ReceiveBytes(int length)
+        public void Send(PeerMessage message)
         {
-            lock (socket)
-            {
-                int bytesRec;
-                var bytes = new byte[length];
-
-                bytesRec = socket.Receive(bytes);
-
-                return bytes;
-            }
-        }
-
-        public void Send(string message)
-        {
-            lock (socket)
-            {
-                socket.Send(Encoding.ASCII.GetBytes($"{message}\n"));
-            }
-        }
-
-        public void SendBytes(byte[] bytes)
-        {
-            lock (socket)
-            {
-                socket.Send(bytes);
-            }
+            socket.Send(message.ToBytes());
         }
 
         public void Dispose()
