@@ -7,7 +7,7 @@ namespace peer.Messages
     {
         public static readonly byte[] END_DELIMITER = Encoding.UTF8.GetBytes(@"\end");
         private static readonly byte[] END_HEAD_DELIMITER = Encoding.UTF8.GetBytes(@"\endhead");
-        
+
         public PeerCommandType Type { get; set; }
 
         protected byte[] head;
@@ -26,20 +26,11 @@ namespace peer.Messages
             body = bytesAsList.GetRange(startBodyIndex, endIndex).ToArray();
         }
 
-        public PeerMessage(PeerFile file)
-        {
-            var fileHead = Encoding.UTF8.GetBytes(file.ToString());
-
-            Type = PeerCommandType.FILE;
-            head = fileHead.ToArray();
-            body = file.Slice;
-        }
-
         public PeerMessage(PeerCommandType type)
         {
-            this.Type = type;
-            head = END_HEAD_DELIMITER;
-            body = new byte[1024];
+            Type = type;
+            head = new byte[0];
+            body = new byte[0];
         }
 
         public byte[] ToBytes()
