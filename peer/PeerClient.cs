@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Net;
 using System.Net.Sockets;
+using System.Threading.Tasks;
 
 namespace peer
 {
@@ -13,6 +14,7 @@ namespace peer
         private string ip;
         private int port;
         private PeerConnection connection;
+        private Action<IList<PeerFile>> OnReceiveFileList;
 
         public PeerClient(string ip, int port)
         {
@@ -37,9 +39,16 @@ namespace peer
             throw new NotImplementedException();
         }
 
-        public IList<PeerFile> GetFiles()
+        public async Task<IList<PeerFile>> GetFiles()
         {
-            throw new NotImplementedException();
+            var promise = new TaskCompletionSource<IList<PeerFile>>();
+            connection.Send(new PeerMessage(PeerCommandType.GET_LIST));
+
+            OnReceiveFileList = (files) => promise.SetResult(files);
+
+            await promise.Task;
+
+            return promise.Task.Result;
         }
 
         public void UploadFile(string filePath)

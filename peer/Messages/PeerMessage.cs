@@ -28,9 +28,13 @@ namespace peer.Messages
                 case PeerCommandType.UPLOAD_FILE:
                     message = new UploadFileMessage(message);
                     break;
+                case PeerCommandType.LIST_FILES:
+                    message = new ListFilesMessage(message);
+                    break;
                 case PeerCommandType.EXIT:
                 case PeerCommandType.GENERIC_ERROR:
                 case PeerCommandType.GET_CONNECTIONS:
+                case PeerCommandType.GET_LIST:
                 case PeerCommandType.STOP:
                     break;
                 default:
@@ -106,6 +110,8 @@ namespace peer.Messages
         FILE,
         GENERIC_ERROR,
         GET_CONNECTIONS,
+        GET_LIST,
+        LIST_FILES,
         STOP,
         UPLOAD_FILE,
     }

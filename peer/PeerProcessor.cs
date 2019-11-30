@@ -139,9 +139,17 @@ namespace peer
                     {
                         var numberOfConnections = await serverInstance.GetNumberOfConnectionsWithoutProcesor(this);
 
-                        PeerMessage connectionPeerMessage = new ConnectionMessage(numberOfConnections);
+                        var connectionPeerMessage = new ConnectionMessage(numberOfConnections);
 
                         connection.Send(connectionPeerMessage);
+                        break;
+                    }
+                case PeerCommandType.GET_LIST:
+                    {
+                        var files = serverInstance.GetFiles();
+                        var listFilesMessage = new ListFilesMessage(files);
+
+                        connection.Send(listFilesMessage);
                         break;
                     }
                 case PeerCommandType.UPLOAD_FILE:

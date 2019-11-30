@@ -106,9 +106,15 @@ namespace console_app
 
         private static void ListFiles()
         {
+            Console.WriteLine("Loading list");
+
+            var task = client.GetFiles();
+
+            task.Wait();
+
             Console.WriteLine("List of files: ");
 
-            foreach (var file in client.GetFiles())
+            foreach (var file in task.Result)
             {
                 Console.WriteLine($"- {file.Name}");
             }
