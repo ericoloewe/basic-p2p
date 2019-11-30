@@ -1,4 +1,5 @@
 ﻿using peer.Messages;
+using peer.Processors;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -13,8 +14,7 @@ namespace peer
         public bool Stopped { get; private set; }
         private string ip;
         private int port;
-        private PeerConnection connection;
-        private Action<IList<PeerFile>> OnReceiveFileList;
+        private ClientProcessor processor;
 
         public PeerClient(string ip, int port)
         {
@@ -26,12 +26,13 @@ namespace peer
 
             sender.Connect(endpoint);
 
-            connection = new PeerConnection(sender);
+            var connection = new PeerConnection(sender);
+            processor = new ClientProcessor(connection);
         }
 
         public void Dispose()
         {
-            throw new NotImplementedException();
+            processor.Dispose();
         }
 
         public byte[] DownloadFile(string fileName)
@@ -39,16 +40,9 @@ namespace peer
             throw new NotImplementedException();
         }
 
-        public async Task<IList<PeerFile>> GetFiles()
+        public async Task<string[]> GetFiles()
         {
-            var promise = new TaskCompletionSource<IList<PeerFile>>();
-            connection.Send(new PeerMessage(PeerCommandType.GET_LIST));
-
-            OnReceiveFileList = (files) => promise.SetResult(files);
-
-            await promise.Task;
-
-            return promise.Task.Result;
+            return await processor.GetFiles();
         }
 
         public void UploadFile(string filePath)
@@ -58,7 +52,7 @@ namespace peer
             var peerNewFile = new PeerNewFile(fileName, bytes);
             var message = new UploadFileMessage(peerNewFile);
 
-            connection.Send(message);
+            processor.Send(message);
         }
     }
 }

@@ -102,17 +102,4 @@ namespace peer.Messages
             return -1;
         }
     }
-
-    public enum PeerCommandType
-    {
-        CONNECTIONS,
-        EXIT,
-        FILE,
-        GENERIC_ERROR,
-        GET_CONNECTIONS,
-        GET_LIST,
-        LIST_FILES,
-        STOP,
-        UPLOAD_FILE,
-    }
 }

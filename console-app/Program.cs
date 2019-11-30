@@ -114,9 +114,9 @@ namespace console_app
 
             Console.WriteLine("List of files: ");
 
-            foreach (var file in task.Result)
+            foreach (var fileName in task.Result)
             {
-                Console.WriteLine($"- {file.Name}");
+                Console.WriteLine($"- {fileName}");
             }
         }
 

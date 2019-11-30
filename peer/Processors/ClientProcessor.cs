@@ -1,15 +1,20 @@
 ﻿using peer.Messages;
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace peer.Processors
 {
     public class ClientProcessor : Processor
     {
-        public Action<PeerFile> OnReceiveFile { protected get; set; }
-        public Action<int> OnReceiveNumberOfConnections { protected get; set; }
+        private Action<string[]> OnReceiveFileList;
 
         public ClientProcessor(PeerConnection connection) : base(connection) { }
+
+        public new void Send(PeerMessage peerMessage)
+        {
+            base.Send(peerMessage);
+        }
 
         protected override async Task ProcessParsedCommand(PeerMessage message)
         {
@@ -17,7 +22,27 @@ namespace peer.Processors
 
             switch (message.Type)
             {
+                case PeerCommandType.LIST_FILES:
+                    {
+                        var listFilesMessage = (ListFilesMessage)message;
+
+                        OnReceiveFileList(listFilesMessage.Files);
+                        break;
+                    }
             }
+        }
+
+        public async Task<string[]> GetFiles()
+        {
+            var promise = new TaskCompletionSource<string[]>();
+
+            Send(new PeerMessage(PeerCommandType.GET_LIST));
+
+            OnReceiveFileList = (files) => promise.SetResult(files);
+
+            await promise.Task;
+
+            return promise.Task.Result;
         }
     }
 }
