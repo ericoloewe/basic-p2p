@@ -2,20 +2,20 @@
 using System;
 using System.IO;
 
-namespace console_app
+namespace console_peer
 {
     class Program
     {
-        private static PeerClient client;
+        private static Peer peer;
         private static bool hasExited = false;
 
         static void Main(string[] args)
         {
             Console.WriteLine("Feel free to type your command above: ");
 
-            ConnectToPeer(args);
+            StartToAccept(args);
 
-            while (!client.Stopped && !hasExited)
+            while (!peer.Stopped && !hasExited)
             {
                 try
                 {
@@ -31,14 +31,14 @@ namespace console_app
             }
         }
 
-        private static void ConnectToPeer(string[] args)
+        private static void StartToAccept(string[] args)
         {
             if (args.Length < 2 || string.IsNullOrEmpty(args[0]) || string.IsNullOrEmpty(args[1]))
             {
                 throw new ArgumentException($"You need to fill the ip and port of the peer");
             }
 
-            client = new PeerClient(args[0], int.Parse(args[1]));
+            peer = new Peer(args[0], int.Parse(args[1]));
         }
 
         private static void ProcessCommand(string[] args)
@@ -54,6 +54,11 @@ namespace console_app
 
             switch (parsedCommand)
             {
+                case "connect":
+                    {
+                        Connect(args[1], args[2]);
+                        break;
+                    }
                 case "exit":
                     {
                         Exit();
@@ -81,10 +86,20 @@ namespace console_app
             }
         }
 
+        private static void Connect(string nodeIp, string nodePort)
+        {
+            if (string.IsNullOrEmpty(nodeIp) || string.IsNullOrEmpty(nodePort))
+            {
+                throw new ArgumentException($"Invalid host or ip");
+            }
+
+            peer.Connect(nodeIp, int.Parse(nodePort));
+        }
+
         private static void Exit()
         {
             hasExited = true;
-            client.Dispose();
+            peer.Dispose();
         }
 
         private static void DownloadFile(string fileName, string downloadPath)
@@ -94,7 +109,7 @@ namespace console_app
                 throw new ArgumentException($"Invalid fileName or downloadPath");
             }
 
-            var fileBytes = client.DownloadFile(fileName);
+            var fileBytes = peer.DownloadFile(fileName);
 
             using (var fs = new FileStream(downloadPath, FileMode.Create, FileAccess.Write))
             {
@@ -108,7 +123,7 @@ namespace console_app
         {
             Console.WriteLine("List of files: ");
 
-            foreach (var file in client.GetFiles())
+            foreach (var file in peer.GetFiles())
             {
                 Console.WriteLine($"- {file.Name}");
             }
@@ -123,7 +138,7 @@ namespace console_app
 
             string filePath = Path.GetFullPath(relativePath);
 
-            var task = client.UploadFile(filePath);
+            var task = peer.UploadFile(filePath);
 
             task.Wait();
             Console.WriteLine($"The file {filePath} was uploaded");
