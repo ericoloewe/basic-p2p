@@ -10,5 +10,7 @@ namespace peer.Messages
         {
             body = BitConverter.GetBytes(connectionsAmount);
         }
+
+        public ConnectionMessage(PeerMessage message) : base(message) { }
     }
 }

@@ -15,5 +15,7 @@ namespace peer.Messages
             head = fileHead.ToArray();
             body = file.FileBytes;
         }
+
+        public UploadFileMessage(PeerMessage message) : base(message) { }
     }
 }

@@ -13,7 +13,48 @@ namespace peer.Messages
         protected byte[] head;
         protected byte[] body;
 
-        public PeerMessage(byte[] bytes)
+        public static PeerMessage FromBytes(byte[] bytes)
+        {
+            var message = new PeerMessage(bytes);
+
+            switch (message.Type)
+            {
+                case PeerCommandType.CONNECTIONS:
+                    message = new ConnectionMessage(message);
+                    break;
+                case PeerCommandType.FILE:
+                    message = new FileMessage(message);
+                    break;
+                case PeerCommandType.UPLOAD_FILE:
+                    message = new UploadFileMessage(message);
+                    break;
+                case PeerCommandType.EXIT:
+                case PeerCommandType.GENERIC_ERROR:
+                case PeerCommandType.GET_CONNECTIONS:
+                case PeerCommandType.STOP:
+                    break;
+                default:
+                    break;
+            }
+
+            return message;
+        }
+
+        public PeerMessage(PeerCommandType type)
+        {
+            Type = type;
+            head = new byte[0];
+            body = new byte[0];
+        }
+
+        protected PeerMessage(PeerMessage message)
+        {
+            Type = message.Type;
+            head = message.head;
+            body = message.body;
+        }
+
+        private PeerMessage(byte[] bytes)
         {
             var bytesAsList = bytes.ToList();
             Type = (PeerCommandType)bytes[0];
@@ -24,13 +65,6 @@ namespace peer.Messages
 
             head = bytesAsList.GetRange(1, endHeadIndex).ToArray();
             body = bytesAsList.GetRange(startBodyIndex, endIndex).ToArray();
-        }
-
-        public PeerMessage(PeerCommandType type)
-        {
-            Type = type;
-            head = new byte[0];
-            body = new byte[0];
         }
 
         public byte[] ToBytes()

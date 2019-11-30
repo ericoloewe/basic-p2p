@@ -20,7 +20,7 @@ namespace peer
 
             socket.Receive(bytes);
 
-            return new PeerMessage(bytes);
+            return PeerMessage.FromBytes(bytes);
         }
 
         public void Send(PeerMessage message)

@@ -12,5 +12,7 @@ namespace peer.Messages
             head = fileHead.ToArray();
             body = file.Slice;
         }
+
+        public FileMessage(PeerMessage message) : base(message) { }
     }
 }

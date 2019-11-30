@@ -117,7 +117,7 @@ namespace peer
             {
                 case PeerCommandType.CONNECTIONS:
                     {
-                        var conectionsMessage = message as ConnectionMessage;
+                        var conectionsMessage = (ConnectionMessage)message;
 
                         OnReceiveNumberOfConnections(conectionsMessage.ConnectionsAmount);
                         break;
@@ -129,7 +129,7 @@ namespace peer
                     }
                 case PeerCommandType.FILE:
                     {
-                        var fileMessage = message as FileMessage;
+                        var fileMessage = (FileMessage)message;
 
                         //Console.WriteLine($"Receive file to upload => {uploadFileMessage.FileName}, {uploadFileMessage.FileBytes.Length}");
 
@@ -147,7 +147,7 @@ namespace peer
                     }
                 case PeerCommandType.UPLOAD_FILE:
                     {
-                        var uploadFileMessage = message as UploadFileMessage;
+                        var uploadFileMessage = (UploadFileMessage)message;
 
                         Console.WriteLine($"Receive file to upload => {uploadFileMessage.FileName}, {uploadFileMessage.FileBytes.Length}");
 
