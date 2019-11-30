@@ -5,6 +5,7 @@ using System.Net;
 using System.Net.Sockets;
 using System.Threading.Tasks;
 using peer.Messages;
+using peer.Processors;
 
 namespace peer
 {
@@ -14,6 +15,7 @@ namespace peer
         public PeerInfo Info { get; }
 
         private readonly IList<PeerProcessor> processors = new List<PeerProcessor>();
+        private readonly IList<ClientProcessor> clients = new List<ClientProcessor>();
         private readonly IList<PeerFile> files = new List<PeerFile>();
         private readonly Task cycle;
         private readonly string ip;
@@ -66,7 +68,7 @@ namespace peer
             return files;
         }
 
-        public async Task<int> GetNumberOfConnectionsWithoutProcesor(PeerProcessor requester)
+        public async Task<int> GetNumberOfConnectionsWithoutProcesor(Processor requester)
         {
             var numberOfConnections = 0;
 
