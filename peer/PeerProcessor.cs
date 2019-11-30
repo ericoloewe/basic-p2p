@@ -40,7 +40,7 @@ namespace peer
 
         public void SendFile(PeerFile file)
         {
-            connection.Send(new PeerMessage(file));
+            connection.Send(new FileMessage(file));
         }
 
         public void Dispose()
