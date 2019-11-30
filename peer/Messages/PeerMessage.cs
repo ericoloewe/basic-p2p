@@ -1,19 +1,17 @@
-﻿using System;
-using System.Text;
+﻿using System.Text;
 using System.Linq;
 
-namespace peer
+namespace peer.Messages
 {
     public class PeerMessage
     {
         public static readonly byte[] END_DELIMITER = Encoding.UTF8.GetBytes(@"\end");
         private static readonly byte[] END_HEAD_DELIMITER = Encoding.UTF8.GetBytes(@"\endhead");
-        public bool HasFile { get { return File != null; } }
-        public PeerFile File { get; }
+        
         public PeerCommandType Type { get; set; }
 
-        private byte[] head;
-        private byte[] body;
+        protected byte[] head;
+        protected byte[] body;
 
         public PeerMessage(byte[] bytes)
         {
@@ -33,13 +31,13 @@ namespace peer
             var fileHead = Encoding.UTF8.GetBytes(file.ToString());
 
             Type = PeerCommandType.FILE;
-            head = fileHead.Concat(END_HEAD_DELIMITER).ToArray();
+            head = fileHead.ToArray();
             body = file.Slice;
         }
 
-        public PeerMessage(PeerCommandType Type)
+        public PeerMessage(PeerCommandType type)
         {
-            this.Type = Type;
+            this.Type = type;
             head = END_HEAD_DELIMITER;
             body = new byte[1024];
         }
@@ -80,7 +78,9 @@ namespace peer
         CONNECTIONS,
         EXIT,
         FILE,
-        STOP,
         GENERIC_ERROR,
+        GET_CONNECTIONS,
+        STOP,
+        UPLOAD_FILE,
     }
 }

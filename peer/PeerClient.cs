@@ -1,5 +1,7 @@
-﻿using System;
+﻿using peer.Messages;
+using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Net;
 using System.Net.Sockets;
 using System.Threading.Tasks;
@@ -41,9 +43,14 @@ namespace peer
             throw new NotImplementedException();
         }
 
-        public async Task UploadFile(string filePath)
+        public void UploadFile(string filePath)
         {
-            throw new NotImplementedException();
+            var bytes = File.ReadAllBytes(filePath);
+            var fileName = Path.GetFileName(filePath);
+            var peerNewFile = new PeerNewFile(fileName, bytes);
+            var message = new UploadFileMessage(peerNewFile);
+
+            connection.Send(message);
         }
     }
 }

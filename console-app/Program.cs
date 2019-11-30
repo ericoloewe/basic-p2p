@@ -123,9 +123,8 @@ namespace console_app
 
             string filePath = Path.GetFullPath(relativePath);
 
-            var task = client.UploadFile(filePath);
+            client.UploadFile(filePath);
 
-            task.Wait();
             Console.WriteLine($"The file {filePath} was uploaded");
         }
     }

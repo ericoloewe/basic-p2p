@@ -83,16 +83,16 @@ namespace peer
             return numberOfConnections;
         }
 
-        public async Task UploadFile(string filePath)
+        public async Task UploadFile(string fileName, byte[] bytes)
         {
-            var bytes = File.ReadAllBytes(filePath).ToList();
+            var bytesAsList = bytes.ToList();
             int peersAmount = GetNumberOfFragments();
-            var fragmentSize = (bytes.Count / peersAmount);
+            var fragmentSize = (bytesAsList.Count / peersAmount);
             var currentSlice = 0;
 
             var startIndex = fragmentSize * currentSlice;
             var endIndex = fragmentSize * (currentSlice + 1);
-            var file = GetFileByStartAndEndIndexes(filePath, bytes, startIndex, endIndex);
+            var file = GetFileByStartAndEndIndexes(fileName, bytesAsList, startIndex, endIndex);
 
             SaveFile(file);
 
@@ -105,7 +105,7 @@ namespace peer
                 startIndex = fragmentSize * currentSlice;
                 currentSlice += numberOfConnections;
                 endIndex = fragmentSize * (currentSlice + 1);
-                file = GetFileByStartAndEndIndexes(filePath, bytes, startIndex, endIndex);
+                file = GetFileByStartAndEndIndexes(fileName, bytesAsList, startIndex, endIndex);
 
                 peerProcessor.SendFile(file);
             }
@@ -133,10 +133,9 @@ namespace peer
             processors.Add(processor);
         }
 
-        private PeerFile GetFileByStartAndEndIndexes(string filePath, List<byte> bytes, int startIndex, int endIndex)
+        private PeerFile GetFileByStartAndEndIndexes(string fileName, List<byte> bytes, int startIndex, int endIndex)
         {
             var list = bytes.GetRange(startIndex, endIndex - startIndex);
-            var fileName = Path.GetFileName(filePath);
             var file = new PeerFile(fileName, owner, startIndex, endIndex, list.ToArray());
 
             return file;

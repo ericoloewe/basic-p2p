@@ -1,4 +1,5 @@
-﻿using System;
+﻿using peer.Messages;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Sockets;
@@ -12,14 +13,10 @@ namespace peer
         public Action OnStop { protected get; set; }
         public Action<PeerFile> OnReceiveFile { protected get; set; }
         public Action<int> OnReceiveNumberOfConnections { protected get; set; }
-        public bool IsWaitingForFile { get { return lastFileInfoCommandSplit != null; } }
 
-        private const int TIME_TO_WAIT_FOR_NEXT_MESSAGE = 5000;
         private readonly PeerConnection connection;
         private readonly Task cycle;
         private readonly Peer serverInstance;
-        private readonly Queue<PeerMessage> messages = new Queue<PeerMessage>();
-        private string[] lastFileInfoCommandSplit;
 
         public PeerProcessor(PeerConnection connection, Peer serverInstance)
         {
@@ -32,7 +29,7 @@ namespace peer
         {
             var promise = new TaskCompletionSource<int>();
 
-            messages.Enqueue(new PeerMessage("connections"));
+            connection.Send(new PeerMessage(PeerCommandType.GET_CONNECTIONS));
 
             OnReceiveNumberOfConnections = (numberOfConnections) => promise.SetResult(numberOfConnections);
 
@@ -43,9 +40,7 @@ namespace peer
 
         public void SendFile(PeerFile file)
         {
-            messages.Enqueue(new PeerMessage($"begin-file;{file}"));
-            messages.Enqueue(new PeerMessage(file));
-            messages.Enqueue(new PeerMessage("end-file"));
+            connection.Send(new PeerMessage(file));
         }
 
         public void Dispose()
@@ -62,27 +57,25 @@ namespace peer
         {
             var task = new Task(() =>
             {
-                var command = "";
+                PeerMessage command;
 
-                messages.Enqueue(new PeerMessage("welcome"));
-
-                while (!command.StartsWith("exit") && !command.StartsWith("stop"))
+                do
                 {
                     command = SafeAndSyncReceiveAndProccessCommand();
-                }
+                } while (command.Type != PeerCommandType.EXIT && command.Type != PeerCommandType.STOP);
             });
 
             task.Start();
             await task;
         }
 
-        protected string SafeAndSyncReceiveAndProccessCommand()
+        protected PeerMessage SafeAndSyncReceiveAndProccessCommand()
         {
-            var command = "";
+            PeerMessage command = new PeerMessage(PeerCommandType.GENERIC_ERROR); ;
 
             try
             {
-                Task<string> task = ReceiveAndProccessCommand();
+                var task = ReceiveAndProccessCommand();
 
                 task.Wait();
 
@@ -92,11 +85,6 @@ namespace peer
                 }
 
                 command = task.Result;
-
-                if (command == "no-message")
-                {
-                    Thread.Sleep(TIME_TO_WAIT_FOR_NEXT_MESSAGE);
-                }
             }
             catch (AggregateException ex)
             {
@@ -105,122 +93,66 @@ namespace peer
 
                 if (ex.InnerExceptions.Any(e => e is SocketException))
                 {
-                    command = "stop";
+                    command = new PeerMessage(PeerCommandType.STOP);
                 }
             }
 
             return command;
         }
-        protected async Task<string> ReceiveAndProccessCommand()
+
+        protected async Task<PeerMessage> ReceiveAndProccessCommand()
         {
-            string parsedCommand;
+            var command = connection.Receive();
 
-            if (IsWaitingForFile)
-            {
-                SendMessage(new PeerMessage("started-to-receive-file"));
-                var fileName = lastFileInfoCommandSplit[1];
-                var startIndex = int.Parse(lastFileInfoCommandSplit[2]);
-                var endIndex = int.Parse(lastFileInfoCommandSplit[3]);
-                var length = int.Parse(lastFileInfoCommandSplit[4]);
-                var info = PeerInfo.FromString(lastFileInfoCommandSplit[5]);
+            Console.WriteLine($"Receive command {command}");
 
-                ReceiveFile(fileName, startIndex, endIndex, length, info);
-                parsedCommand = "file";
-            }
-            else
-            {
-                var nextMessage = GetNextMessage();
+            await ProcessParsedCommand(command);
 
-                SendMessage(nextMessage);
-
-                var command = connection.Receive();
-                string[] commandSplit = command.Trim().Split(';');
-                parsedCommand = commandSplit[0].Trim().ToLower();
-
-                Console.WriteLine($"Receive command {parsedCommand}");
-
-                await ProcessParsedCommand(commandSplit, parsedCommand);
-            }
-
-            return parsedCommand;
+            return command;
         }
 
-        private async Task ProcessParsedCommand(string[] commandSplit, string parsedCommand)
+        private async Task ProcessParsedCommand(PeerMessage message)
         {
-            switch (parsedCommand)
+            switch (message.Type)
             {
-                case "exit":
+                case PeerCommandType.CONNECTIONS:
+                    {
+                        var conectionsMessage = message as ConnectionMessage;
+
+                        OnReceiveNumberOfConnections(conectionsMessage.ConnectionsAmount);
+                        break;
+                    }
+                case PeerCommandType.EXIT:
                     {
                         HandleStop();
                         break;
                     }
-                case "begin-file":
+                case PeerCommandType.FILE:
                     {
-                        lastFileInfoCommandSplit = commandSplit;
-                        break;
-                    }
-                case "end-file":
-                    {
-                        messages.Enqueue(new PeerMessage("upload-file-ok"));
-                        break;
-                    }
-                case "connections":
-                    {
-                        if (commandSplit.Length > 1)
-                        {
-                            var numberOfConnections = commandSplit[1];
 
-                            OnReceiveNumberOfConnections(int.Parse(numberOfConnections));
-                        }
-                        else
-                        {
-                            var numberOfConnections = await serverInstance.GetNumberOfConnectionsWithoutProcesor(this);
-
-                            messages.Enqueue(new PeerMessage($"connections;{numberOfConnections}"));
-                        }
                         break;
                     }
-                case "welcome":
-                case "no-message":
-                case "started-to-receive-file":
-                case "upload-file-ok":
-                    break;
+                case PeerCommandType.GET_CONNECTIONS:
+                    {
+                        var numberOfConnections = await serverInstance.GetNumberOfConnectionsWithoutProcesor(this);
+
+                        PeerMessage connectionPeerMessage = new ConnectionMessage(numberOfConnections);
+
+                        connection.Send(connectionPeerMessage);
+                        break;
+                    }
+                case PeerCommandType.UPLOAD_FILE:
+                    {
+                        var uploadFileMessage = message as UploadFileMessage;
+
+                        Console.WriteLine($"Receive file to upload => {uploadFileMessage.FileName}, {uploadFileMessage.FileBytes.Length}");
+
+                        await serverInstance.UploadFile(uploadFileMessage.FileName, uploadFileMessage.FileBytes);
+                        break;
+                    }
                 default:
-                    throw new ArgumentException($"Invalid command {parsedCommand}");
+                    throw new NotImplementedException();
             }
-        }
-
-        private PeerMessage GetNextMessage()
-        {
-            var message = new PeerMessage("no-message");
-
-            if (messages.Count > 0)
-            {
-                message = messages.Dequeue();
-            }
-
-            return message;
-        }
-
-        private void SendMessage(PeerMessage message)
-        {
-            if (message.HasFile)
-            {
-                connection.SendBytes(message.File.Slice);
-            }
-            else
-            {
-                connection.Send(message.ToString());
-            }
-        }
-
-        protected void ReceiveFile(string fileName, int startIndex, int endIndex, int length, PeerInfo info)
-        {
-            var fileBytes = connection.ReceiveBytes(length);
-
-            OnReceiveFile(new PeerFile(fileName, info, startIndex, endIndex, fileBytes));
-            Console.WriteLine($"Receive file => {fileName}, {startIndex}, {endIndex}, {length}");
-            lastFileInfoCommandSplit = null;
         }
     }
 }

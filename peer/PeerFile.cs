@@ -23,4 +23,21 @@
             return $"{Name};{startIndex};{endIndex};{Slice.Length};{Owner}";
         }
     }
+
+    public class PeerNewFile
+    {
+        public string Name { get; }
+        public byte[] FileBytes { get; }
+
+        public PeerNewFile(string fileName, byte[] bytes)
+        {
+            Name = fileName;
+            FileBytes = bytes;
+        }
+
+        public override string ToString()
+        {
+            return Name;
+        }
+    }
 }
