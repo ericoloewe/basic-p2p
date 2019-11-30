@@ -64,21 +64,6 @@ namespace console_peer
                         Exit();
                         break;
                     }
-                case "list":
-                    {
-                        ListFiles();
-                        break;
-                    }
-                case "upload":
-                    {
-                        UploadToNodes(args[1]);
-                        break;
-                    }
-                case "download":
-                    {
-                        DownloadFile(args[1], args[2]);
-                        break;
-                    }
                 default:
                     {
                         throw new ArgumentException($"Invalid command => {command}");
@@ -100,48 +85,6 @@ namespace console_peer
         {
             hasExited = true;
             peer.Dispose();
-        }
-
-        private static void DownloadFile(string fileName, string downloadPath)
-        {
-            if (string.IsNullOrEmpty(fileName) || string.IsNullOrEmpty(downloadPath))
-            {
-                throw new ArgumentException($"Invalid fileName or downloadPath");
-            }
-
-            var fileBytes = peer.DownloadFile(fileName);
-
-            using (var fs = new FileStream(downloadPath, FileMode.Create, FileAccess.Write))
-            {
-                fs.Write(fileBytes, 0, fileBytes.Length);
-            }
-
-            Console.WriteLine($"The file {fileName} was downloaded to {downloadPath}");
-        }
-
-        private static void ListFiles()
-        {
-            Console.WriteLine("List of files: ");
-
-            foreach (var file in peer.GetFiles())
-            {
-                Console.WriteLine($"- {file.Name}");
-            }
-        }
-
-        private static void UploadToNodes(string relativePath)
-        {
-            if (string.IsNullOrEmpty(relativePath))
-            {
-                throw new ArgumentException($"Invalid path");
-            }
-
-            string filePath = Path.GetFullPath(relativePath);
-
-            var task = peer.UploadFile(filePath);
-
-            task.Wait();
-            Console.WriteLine($"The file {filePath} was uploaded");
         }
     }
 }
