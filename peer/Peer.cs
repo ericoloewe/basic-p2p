@@ -11,13 +11,13 @@ namespace peer
     public class Peer : IDisposable
     {
         public bool Stopped { get; private set; }
+        public PeerInfo Info { get; }
 
         private readonly IList<PeerProcessor> processors = new List<PeerProcessor>();
         private readonly IList<PeerFile> files = new List<PeerFile>();
         private readonly Task cycle;
         private readonly string ip;
         private readonly int port;
-        private readonly PeerInfo owner;
         private Socket listener;
 
         public Peer(string ip, int port)
@@ -28,7 +28,7 @@ namespace peer
 
             this.ip = ip;
             this.port = port;
-            owner = new PeerInfo(port);
+            Info = new PeerInfo(port);
         }
 
         public void Connect(string nodeIp, int nodePort)
@@ -86,15 +86,22 @@ namespace peer
         public async Task UploadFile(string fileName, byte[] bytes)
         {
             var bytesAsList = bytes.ToList();
+            var file = GetFileByStartAndEndIndexes(fileName, bytesAsList, 0, bytesAsList.Count);
+
+            await SaveAndShare(file);
+        }
+
+        public async Task SaveAndShare(PeerFile file)
+        {
+            var bytesAsList = file.Slice.ToList();
             int peersAmount = GetNumberOfFragments();
             var fragmentSize = (bytesAsList.Count / peersAmount);
             var currentSlice = 0;
 
             var startIndex = fragmentSize * currentSlice;
             var endIndex = fragmentSize * (currentSlice + 1);
-            var file = GetFileByStartAndEndIndexes(fileName, bytesAsList, startIndex, endIndex);
 
-            SaveFile(file);
+            SaveFile(GetFileByStartAndEndIndexes(file.Name, bytesAsList, startIndex, endIndex, file.Owner));
 
             foreach (var peerProcessor in processors)
             {
@@ -105,7 +112,7 @@ namespace peer
                 startIndex = fragmentSize * currentSlice;
                 currentSlice += numberOfConnections;
                 endIndex = fragmentSize * (currentSlice + 1);
-                file = GetFileByStartAndEndIndexes(fileName, bytesAsList, startIndex, endIndex);
+                file = GetFileByStartAndEndIndexes(file.Name, bytesAsList, startIndex, endIndex, file.Owner);
 
                 peerProcessor.SendFile(file);
             }
@@ -114,8 +121,10 @@ namespace peer
         private async Task AcceptConnection()
         {
             Console.WriteLine($"Start to accept at: {listener.LocalEndPoint}");
+
             var handler = await listener.AcceptAsync();
             var connection = new PeerConnection(handler);
+
             CreateProcessor(connection);
         }
 
@@ -133,12 +142,8 @@ namespace peer
             processors.Add(processor);
         }
 
-        internal Task SaveFileAndUploadToOther(FileMessage fileMessage)
-        {
-            throw new NotImplementedException();
-        }
-
-        private PeerFile GetFileByStartAndEndIndexes(string fileName, List<byte> bytes, int startIndex, int endIndex)
+        private PeerFile GetFileByStartAndEndIndexes(string fileName, List<byte> bytes, int startIndex, int endIndex) => GetFileByStartAndEndIndexes(fileName, bytes, startIndex, endIndex, Info);
+        private PeerFile GetFileByStartAndEndIndexes(string fileName, List<byte> bytes, int startIndex, int endIndex, PeerInfo owner)
         {
             var list = bytes.GetRange(startIndex, endIndex - startIndex);
             var file = new PeerFile(fileName, owner, startIndex, endIndex, list.ToArray());

@@ -128,10 +128,11 @@ namespace peer
                 case PeerCommandType.FILE:
                     {
                         var fileMessage = (FileMessage)message;
+                        var file = fileMessage.File;
 
-                        //Console.WriteLine($"Receive file to upload => {uploadFileMessage.FileName}, {uploadFileMessage.FileBytes.Length}");
+                        Console.WriteLine($"Receive file to save and share => {file.Name}, {file.Owner}, {file.Slice.Length}");
 
-                        await serverInstance.SaveFileAndUploadToOther(fileMessage);
+                        await serverInstance.SaveAndShare(file);
                         break;
                     }
                 case PeerCommandType.GET_CONNECTIONS:
