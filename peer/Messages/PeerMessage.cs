@@ -59,12 +59,13 @@ namespace peer.Messages
             var bytesAsList = bytes.ToList();
             Type = (PeerCommandType)bytes[0];
 
+            const int startHeadIndex = 1;
             var endHeadIndex = FindBytesIndex(bytes, END_HEAD_DELIMITER);
             var endIndex = FindBytesIndex(bytes, END_DELIMITER);
-            int startBodyIndex = endHeadIndex + END_HEAD_DELIMITER.Length;
+            var startBodyIndex = endHeadIndex + END_HEAD_DELIMITER.Length;
 
-            head = bytesAsList.GetRange(1, endHeadIndex).ToArray();
-            body = bytesAsList.GetRange(startBodyIndex, endIndex).ToArray();
+            head = bytesAsList.GetRange(startHeadIndex, endHeadIndex - startHeadIndex).ToArray();
+            body = bytesAsList.GetRange(startBodyIndex, endIndex - startBodyIndex).ToArray();
         }
 
         public byte[] ToBytes()
