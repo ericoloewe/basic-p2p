@@ -5,6 +5,7 @@ using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Threading.Tasks;
+using peer.Messages;
 
 namespace peer
 {
@@ -131,6 +132,11 @@ namespace peer
             };
 
             processors.Add(processor);
+        }
+
+        internal Task SaveFileAndUploadToOther(FileMessage fileMessage)
+        {
+            throw new NotImplementedException();
         }
 
         private PeerFile GetFileByStartAndEndIndexes(string fileName, List<byte> bytes, int startIndex, int endIndex)
