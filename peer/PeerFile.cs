@@ -20,7 +20,7 @@
 
         public override string ToString()
         {
-            return $"{Name};{startIndex};{endIndex};{Slice.Length};{Owner}";
+            return $"{Name};{startIndex};{endIndex};{Owner}";
         }
     }
 
