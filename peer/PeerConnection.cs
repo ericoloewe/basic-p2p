@@ -1,7 +1,6 @@
 ﻿using peer.Messages;
 using System;
 using System.Net.Sockets;
-using System.Text;
 
 namespace peer
 {

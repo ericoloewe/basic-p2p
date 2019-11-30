@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace peer
+﻿namespace peer
 {
     public class PeerInfo
     {

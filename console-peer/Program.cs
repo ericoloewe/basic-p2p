@@ -1,6 +1,5 @@
 ﻿using peer;
 using System;
-using System.IO;
 
 namespace console_peer
 {

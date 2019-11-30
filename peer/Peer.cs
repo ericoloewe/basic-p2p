@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
@@ -9,7 +8,7 @@ using peer.Messages;
 
 namespace peer
 {
-    public partial class Peer : IDisposable
+    public class Peer : IDisposable
     {
         public bool Stopped { get; private set; }
 
