@@ -27,5 +27,7 @@ namespace peer.Messages
 
             File = new PeerFile(fileName, info, startIndex, endIndex, body);
         }
+
+        public override string ToString() => $"{Type} => {File}";
     }
 }

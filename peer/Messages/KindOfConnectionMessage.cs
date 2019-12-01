@@ -12,6 +12,8 @@ namespace peer.Messages
         }
 
         public KindOfConnectionMessage(Message message) : base(message) { }
+
+        public override string ToString() => $"{Type} => {KindOfConnection}";
     }
 
     public enum ConnectionType

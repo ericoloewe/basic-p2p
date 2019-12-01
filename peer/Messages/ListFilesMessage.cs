@@ -27,5 +27,7 @@ namespace peer.Messages
         }
 
         public ListFilesMessage(Message message) : base(message) { }
+
+        public override string ToString() => $"{Type} => {Files}";
     }
 }

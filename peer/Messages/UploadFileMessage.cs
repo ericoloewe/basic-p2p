@@ -18,5 +18,7 @@ namespace peer.Messages
         }
 
         public UploadFileMessage(Message message) : base(message) { }
+
+        public override string ToString() => $"{Type} => {FileName}";
     }
 }

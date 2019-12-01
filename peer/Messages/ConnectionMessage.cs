@@ -12,5 +12,7 @@ namespace peer.Messages
         }
 
         public ConnectionMessage(Message message) : base(message) { }
+
+        public override string ToString() => $"{Type} => {ConnectionsAmount}";
     }
 }
