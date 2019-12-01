@@ -87,7 +87,7 @@ namespace peer.Processors
 
         private PeerMessage SafeAndSyncReceiveAndProccessCommand()
         {
-            PeerMessage command = new PeerMessage(PeerCommandType.GENERIC_ERROR); ;
+            PeerMessage command = new PeerMessage(PeerCommandType.GENERIC_ERROR);
 
             try
             {

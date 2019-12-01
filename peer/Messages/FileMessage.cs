@@ -19,10 +19,10 @@ namespace peer.Messages
         public FileMessage(PeerMessage message) : base(message)
         {
             var fileInfoCommandSplit = Encoding.UTF8.GetString(head).Split(';');
-            var fileName = fileInfoCommandSplit[1];
-            var startIndex = int.Parse(fileInfoCommandSplit[2]);
-            var endIndex = int.Parse(fileInfoCommandSplit[3]);
-            var info = PeerInfo.FromString(fileInfoCommandSplit[4]);
+            var fileName = fileInfoCommandSplit[0];
+            var startIndex = int.Parse(fileInfoCommandSplit[1]);
+            var endIndex = int.Parse(fileInfoCommandSplit[2]);
+            var info = PeerInfo.FromString(fileInfoCommandSplit[3]);
 
             File = new PeerFile(fileName, info, startIndex, endIndex, body);
         }
