@@ -13,16 +13,16 @@ namespace peer
             this.socket = socket;
         }
 
-        public PeerMessage Receive()
+        public Message Receive()
         {
             var bytes = new byte[1024];
 
             socket.Receive(bytes);
 
-            return PeerMessage.FromBytes(bytes);
+            return Message.FromBytes(bytes);
         }
 
-        public void Send(PeerMessage message)
+        public void Send(Message message)
         {
             socket.Send(message.ToBytes());
         }

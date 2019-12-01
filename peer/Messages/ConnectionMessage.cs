@@ -2,7 +2,7 @@
 
 namespace peer.Messages
 {
-    public class ConnectionMessage : PeerMessage
+    public class ConnectionMessage : Message
     {
         public int ConnectionsAmount { get { return BitConverter.ToInt32(body, 0); } }
 
@@ -11,6 +11,6 @@ namespace peer.Messages
             body = BitConverter.GetBytes(connectionsAmount);
         }
 
-        public ConnectionMessage(PeerMessage message) : base(message) { }
+        public ConnectionMessage(Message message) : base(message) { }
     }
 }

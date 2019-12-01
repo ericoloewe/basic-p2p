@@ -20,7 +20,7 @@ namespace peer.Processors
         {
             var promise = new TaskCompletionSource<int>();
 
-            Send(new PeerMessage(PeerCommandType.GET_CONNECTIONS));
+            Send(new Message(PeerCommandType.GET_CONNECTIONS));
 
             OnReceiveNumberOfConnections = (numberOfConnections) => promise.SetResult(numberOfConnections);
 
@@ -34,7 +34,7 @@ namespace peer.Processors
             Send(new FileMessage(file));
         }
 
-        protected override async Task ProcessParsedCommand(PeerMessage message)
+        protected override async Task ProcessParsedCommand(Message message)
         {
             await base.ProcessParsedCommand(message);
 

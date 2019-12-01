@@ -3,7 +3,7 @@ using System.Text;
 
 namespace peer.Messages
 {
-    public class UploadFileMessage : PeerMessage
+    public class UploadFileMessage : Message
     {
         public byte[] FileBytes { get { return body; } }
         public string FileName { get { return Encoding.UTF8.GetString(head); } }
@@ -16,6 +16,6 @@ namespace peer.Messages
             body = file.FileBytes;
         }
 
-        public UploadFileMessage(PeerMessage message) : base(message) { }
+        public UploadFileMessage(Message message) : base(message) { }
     }
 }

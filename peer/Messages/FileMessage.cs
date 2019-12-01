@@ -3,7 +3,7 @@ using System.Text;
 
 namespace peer.Messages
 {
-    public class FileMessage : PeerMessage
+    public class FileMessage : Message
     {
         public PeerFile File { get; }
 
@@ -16,7 +16,7 @@ namespace peer.Messages
             File = file;
         }
 
-        public FileMessage(PeerMessage message) : base(message)
+        public FileMessage(Message message) : base(message)
         {
             var fileInfoCommandSplit = Encoding.UTF8.GetString(head).Split(';');
             var fileName = fileInfoCommandSplit[0];

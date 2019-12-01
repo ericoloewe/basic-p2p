@@ -11,12 +11,12 @@ namespace peer.Processors
 
         public ClientProcessor(PeerConnection connection) : base(connection) { }
 
-        public new void Send(PeerMessage peerMessage)
+        public new void Send(Message peerMessage)
         {
             base.Send(peerMessage);
         }
 
-        protected override async Task ProcessParsedCommand(PeerMessage message)
+        protected override async Task ProcessParsedCommand(Message message)
         {
             await base.ProcessParsedCommand(message);
 
@@ -44,7 +44,7 @@ namespace peer.Processors
         {
             var promise = new TaskCompletionSource<string[]>();
 
-            Send(new PeerMessage(PeerCommandType.GET_LIST));
+            Send(new Message(PeerCommandType.GET_LIST));
 
             OnReceiveFileList = (files) => promise.SetResult(files);
 

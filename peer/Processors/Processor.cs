@@ -29,7 +29,7 @@ namespace peer.Processors
         {
             var promise = new TaskCompletionSource<ConnectionType>();
 
-            Send(new PeerMessage(PeerCommandType.GET_KIND));
+            Send(new Message(PeerCommandType.GET_KIND));
 
             OnReceiveKindOfConnection = (type) => promise.SetResult(type);
 
@@ -38,7 +38,7 @@ namespace peer.Processors
             return promise.Task.Result == ConnectionType.CLIENT;
         }
 
-        protected virtual async Task ProcessParsedCommand(PeerMessage message)
+        protected virtual async Task ProcessParsedCommand(Message message)
         {
             switch (message.Type)
             {
@@ -59,7 +59,7 @@ namespace peer.Processors
             }
         }
 
-        protected void Send(PeerMessage message)
+        protected void Send(Message message)
         {
             connection.Send(message);
         }
@@ -73,7 +73,7 @@ namespace peer.Processors
         {
             var task = new Task(() =>
             {
-                PeerMessage command;
+                Message command;
 
                 do
                 {
@@ -85,9 +85,9 @@ namespace peer.Processors
             await task;
         }
 
-        private PeerMessage SafeAndSyncReceiveAndProccessCommand()
+        private Message SafeAndSyncReceiveAndProccessCommand()
         {
-            PeerMessage command = new PeerMessage(PeerCommandType.GENERIC_ERROR);
+            Message command = new Message(PeerCommandType.GENERIC_ERROR);
 
             try
             {
@@ -109,14 +109,14 @@ namespace peer.Processors
 
                 if (ex.InnerExceptions.Any(e => e is SocketException))
                 {
-                    command = new PeerMessage(PeerCommandType.STOP);
+                    command = new Message(PeerCommandType.STOP);
                 }
             }
 
             return command;
         }
 
-        private async Task<PeerMessage> ReceiveAndProccessCommand()
+        private async Task<Message> ReceiveAndProccessCommand()
         {
             var command = connection.Receive();
 

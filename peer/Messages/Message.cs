@@ -3,7 +3,7 @@ using System.Linq;
 
 namespace peer.Messages
 {
-    public class PeerMessage
+    public class Message
     {
         public static readonly byte[] END_DELIMITER = Encoding.UTF8.GetBytes(@"\end");
         private static readonly byte[] END_HEAD_DELIMITER = Encoding.UTF8.GetBytes(@"\endhead");
@@ -13,9 +13,9 @@ namespace peer.Messages
         protected byte[] head;
         protected byte[] body;
 
-        public static PeerMessage FromBytes(byte[] bytes)
+        public static Message FromBytes(byte[] bytes)
         {
-            var message = new PeerMessage(bytes);
+            var message = new Message(bytes);
 
             switch (message.Type)
             {
@@ -44,21 +44,21 @@ namespace peer.Messages
             return message;
         }
 
-        public PeerMessage(PeerCommandType type)
+        public Message(PeerCommandType type)
         {
             Type = type;
             head = new byte[0];
             body = new byte[0];
         }
 
-        protected PeerMessage(PeerMessage message)
+        protected Message(Message message)
         {
             Type = message.Type;
             head = message.head;
             body = message.body;
         }
 
-        private PeerMessage(byte[] bytes)
+        private Message(byte[] bytes)
         {
             var bytesAsList = bytes.ToList();
             Type = (PeerCommandType)bytes[0];

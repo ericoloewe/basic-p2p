@@ -2,7 +2,7 @@
 
 namespace peer.Messages
 {
-    public class KindOfConnectionMessage : PeerMessage
+    public class KindOfConnectionMessage : Message
     {
         public ConnectionType KindOfConnection { get { return (ConnectionType)body[0]; } }
 
@@ -11,7 +11,7 @@ namespace peer.Messages
             body = new byte[] { (byte)type };
         }
 
-        public KindOfConnectionMessage(PeerMessage message) : base(message) { }
+        public KindOfConnectionMessage(Message message) : base(message) { }
     }
 
     public enum ConnectionType

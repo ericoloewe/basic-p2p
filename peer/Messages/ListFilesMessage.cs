@@ -4,7 +4,7 @@ using System.Text;
 
 namespace peer.Messages
 {
-    public class ListFilesMessage : PeerMessage
+    public class ListFilesMessage : Message
     {
         private static readonly string SEPARATOR = "\n";
 
@@ -25,6 +25,6 @@ namespace peer.Messages
             body = Encoding.UTF8.GetBytes(fileList);
         }
 
-        public ListFilesMessage(PeerMessage message) : base(message) { }
+        public ListFilesMessage(Message message) : base(message) { }
     }
 }
