@@ -1,4 +1,4 @@
-﻿namespace peer
+﻿namespace peer.Domains
 {
     public class PeerFile
     {
@@ -12,7 +12,7 @@
         public PeerFile(string fileName, PeerInfo owner, int startIndex, int endIndex, byte[] fileSlice)
         {
             Name = fileName;
-            this.Owner = owner;
+            Owner = owner;
             this.startIndex = startIndex;
             this.endIndex = endIndex;
             Slice = fileSlice;

@@ -1,4 +1,4 @@
-﻿namespace peer
+﻿namespace peer.Domains
 {
     public class PeerInfo
     {
