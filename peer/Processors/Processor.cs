@@ -12,6 +12,7 @@ namespace peer.Processors
 
         private readonly Task cycle;
         private readonly PeerConnection connection;
+        private Action<ConnectionType> OnReceiveKindOfConnection;
 
         public Processor(PeerConnection connection)
         {
@@ -24,6 +25,19 @@ namespace peer.Processors
             connection.Dispose();
         }
 
+        public bool IsClient()
+        {
+            var promise = new TaskCompletionSource<ConnectionType>();
+
+            Send(new PeerMessage(PeerCommandType.GET_KIND));
+
+            OnReceiveKindOfConnection = (type) => promise.SetResult(type);
+
+            promise.Task.Wait();
+
+            return promise.Task.Result == ConnectionType.CLIENT;
+        }
+
         protected virtual async Task ProcessParsedCommand(PeerMessage message)
         {
             switch (message.Type)
@@ -31,6 +45,15 @@ namespace peer.Processors
                 case PeerCommandType.EXIT:
                     {
                         HandleStop();
+                        break;
+                    }
+                case PeerCommandType.KIND_OF_CONNECTION:
+                    {
+                        var kindOfConnectionMessage = new KindOfConnectionMessage(message);
+
+                        Console.WriteLine($"Received KindOfConnection message => {kindOfConnectionMessage.KindOfConnection}");
+
+                        OnReceiveKindOfConnection(kindOfConnectionMessage.KindOfConnection);
                         break;
                     }
             }

@@ -14,8 +14,8 @@ namespace peer
         public bool Stopped { get; private set; }
         public PeerInfo Info { get; }
 
-        private readonly IList<PeerProcessor> processors = new List<PeerProcessor>();
-        private readonly IList<ClientProcessor> clients = new List<ClientProcessor>();
+        private readonly IList<PeerProcessor> connectedPeers = new List<PeerProcessor>();
+        private readonly IList<PeerProcessor> connectedClients = new List<PeerProcessor>();
         private readonly IList<PeerFile> files = new List<PeerFile>();
         private readonly Task cycle;
         private readonly string ip;
@@ -49,18 +49,13 @@ namespace peer
 
         public void Dispose()
         {
-            foreach (var connection in processors)
+            foreach (var connection in connectedPeers)
             {
                 connection.Dispose();
             }
 
             listener.Shutdown(SocketShutdown.Both);
             listener.Close();
-        }
-
-        public byte[] DownloadFile(string fileName)
-        {
-            throw new NotImplementedException();
         }
 
         public IEnumerable<PeerFile> GetFiles()
@@ -72,7 +67,7 @@ namespace peer
         {
             var numberOfConnections = 0;
 
-            foreach (var processor in processors)
+            foreach (var processor in connectedPeers)
             {
                 if (processor != requester)
                 {
@@ -105,7 +100,7 @@ namespace peer
 
             SaveFile(GetFileByStartAndEndIndexes(file.Name, bytesAsList, startIndex, endIndex, file.Owner));
 
-            foreach (var peerProcessor in processors)
+            foreach (var peerProcessor in connectedPeers)
             {
                 var numberOfConnections = await peerProcessor.GetNumberOfConnections();
 
@@ -133,15 +128,23 @@ namespace peer
         private void CreateProcessor(PeerConnection connection)
         {
             var processor = new PeerProcessor(connection, this);
+            bool isClient = processor.IsClient();
 
             processor.OnReceiveFile = f => SaveFile(f);
             processor.OnStop = () =>
             {
                 processor.Dispose();
-                processors.Remove(processor);
+
+                if (isClient)
+                    connectedClients.Remove(processor);
+                else
+                    connectedPeers.Remove(processor);
             };
 
-            processors.Add(processor);
+            if (isClient)
+                connectedClients.Add(processor);
+            else
+                connectedPeers.Add(processor);
         }
 
         private PeerFile GetFileByStartAndEndIndexes(string fileName, List<byte> bytes, int startIndex, int endIndex) => GetFileByStartAndEndIndexes(fileName, bytes, startIndex, endIndex, Info);

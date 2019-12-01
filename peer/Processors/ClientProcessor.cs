@@ -22,6 +22,14 @@ namespace peer.Processors
 
             switch (message.Type)
             {
+                case PeerCommandType.GET_KIND:
+                    {
+                        var kindOfConnectionMessage = new KindOfConnectionMessage(ConnectionType.CLIENT);
+
+                        Send(kindOfConnectionMessage);
+                        break;
+                    }
+
                 case PeerCommandType.LIST_FILES:
                     {
                         var listFilesMessage = (ListFilesMessage)message;

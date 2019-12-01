@@ -5,6 +5,8 @@
         // Default commands
         EXIT,
         GENERIC_ERROR,
+        GET_KIND,
+        KIND_OF_CONNECTION,
         STOP,
 
         // Peer commands

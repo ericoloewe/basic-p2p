@@ -66,6 +66,13 @@ namespace peer.Processors
                         Send(connectionPeerMessage);
                         break;
                     }
+                case PeerCommandType.GET_KIND:
+                    {
+                        var kindOfConnectionMessage = new KindOfConnectionMessage(ConnectionType.PEER);
+
+                        Send(kindOfConnectionMessage);
+                        break;
+                    }
                 case PeerCommandType.GET_LIST:
                     {
                         var files = serverInstance.GetFiles();
