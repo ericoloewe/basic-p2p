@@ -101,5 +101,10 @@ namespace peer.Messages
             // not found, return -1
             return -1;
         }
+
+        public override string ToString()
+        {
+            return $"{Type}";
+        }
     }
 }
