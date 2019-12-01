@@ -102,9 +102,6 @@ namespace peer.Messages
             return -1;
         }
 
-        public override string ToString()
-        {
-            return $"{Type}";
-        }
+        public override string ToString() => $"{Type}";
     }
 }

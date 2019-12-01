@@ -7,8 +7,8 @@ namespace peer.Processors
 {
     public class PeerProcessor : Processor
     {
-        public Action<PeerFile> OnReceiveFile { protected get; set; }
         public Action<int> OnReceiveNumberOfConnections { protected get; set; }
+        public int ConnectedPeerId { get { return serverInstance.Info.Id; } }
 
         private readonly Peer serverInstance;
 
@@ -55,12 +55,12 @@ namespace peer.Processors
 
                         Console.WriteLine($"Receive file to save and share => {file.Name}, {file.Owner}, {file.Slice.Length}");
 
-                        await serverInstance.SaveAndShare(file);
+                        await serverInstance.SaveAndShare(file, ConnectedPeerId);
                         break;
                     }
                 case PeerCommandType.GET_CONNECTIONS:
                     {
-                        var numberOfConnections = await serverInstance.GetNumberOfConnectionsWithoutProcesor(this);
+                        var numberOfConnections = await serverInstance.GetNumberOfConnectionsWithoutProcesor(ConnectedPeerId);
 
                         var connectionPeerMessage = new ConnectionMessage(numberOfConnections);
 
