@@ -22,7 +22,7 @@ namespace peer.Messages
             var fileName = fileInfoCommandSplit[1];
             var startIndex = int.Parse(fileInfoCommandSplit[2]);
             var endIndex = int.Parse(fileInfoCommandSplit[3]);
-            var info = PeerInfo.FromString(fileInfoCommandSplit[5]);
+            var info = PeerInfo.FromString(fileInfoCommandSplit[4]);
 
             File = new PeerFile(fileName, info, startIndex, endIndex, body);
         }
