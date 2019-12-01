@@ -6,9 +6,9 @@ namespace peer.Messages
 {
     public class FileMessage : Message
     {
-        public PeerFile File { get; }
+        public PeerFileSlice File { get; }
 
-        public FileMessage(PeerFile file) : base(PeerCommandType.FILE)
+        public FileMessage(PeerFileSlice file) : base(PeerCommandType.FILE)
         {
             var fileHead = Encoding.UTF8.GetBytes(file.ToString());
 
@@ -25,7 +25,7 @@ namespace peer.Messages
             var endIndex = int.Parse(fileInfoCommandSplit[2]);
             var info = PeerInfo.FromString(fileInfoCommandSplit[3]);
 
-            File = new PeerFile(fileName, info, startIndex, endIndex, body);
+            File = new PeerFileSlice(fileName, info, startIndex, endIndex, body);
         }
 
         public override string ToString() => $"{Type} => {File}";

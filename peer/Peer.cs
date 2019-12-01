@@ -16,7 +16,7 @@ namespace peer
 
         private readonly IList<PeerProcessor> connectedPeers = new List<PeerProcessor>();
         private readonly IList<PeerProcessor> connectedClients = new List<PeerProcessor>();
-        private readonly IList<PeerFile> files = new List<PeerFile>();
+        private readonly IList<PeerFileSlice> files = new List<PeerFileSlice>();
         private readonly Task cycle;
         private readonly string ip;
         private readonly int port;
@@ -58,7 +58,7 @@ namespace peer
             listener.Close();
         }
 
-        public IEnumerable<PeerFile> GetFiles() => files;
+        public IEnumerable<PeerFileSlice> GetFiles() => files;
 
         public async Task<int> GetNumberOfConnectionsWithoutProcesor(int requesterPeerId)
         {
@@ -82,14 +82,19 @@ namespace peer
             await SaveAndShareForPeers(file, connectedPeers);
         }
 
-        public async Task SaveAndShare(PeerFile file, int requesterPeerId)
+        internal async Task<PeerFile> GetAllSlicesOfFile(string fileName)
+        {
+            throw new NotImplementedException();
+        }
+
+        public async Task SaveAndShare(PeerFileSlice file, int requesterPeerId)
         {
             var peersToShare = GetConnectedPeersWithoutId(requesterPeerId);
 
             await SaveAndShareForPeers(file, peersToShare);
         }
 
-        public async Task SaveAndShareForPeers(PeerFile file, IList<PeerProcessor> peersToShare)
+        public async Task SaveAndShareForPeers(PeerFileSlice file, IList<PeerProcessor> peersToShare)
         {
             var bytesAsList = file.Slice.ToList();
             int peersAmount = GetNumberOfFragments();
@@ -149,11 +154,11 @@ namespace peer
 
         private List<PeerProcessor> GetConnectedPeersWithoutId(int peerId) => connectedPeers.Where(cp => cp.ConnectedPeerId != peerId).ToList();
 
-        private PeerFile GetFileByStartAndEndIndexes(string fileName, List<byte> bytes, int startIndex, int endIndex) => GetFileByStartAndEndIndexes(fileName, bytes, startIndex, endIndex, Info);
-        private PeerFile GetFileByStartAndEndIndexes(string fileName, List<byte> bytes, int startIndex, int endIndex, PeerInfo owner)
+        private PeerFileSlice GetFileByStartAndEndIndexes(string fileName, List<byte> bytes, int startIndex, int endIndex) => GetFileByStartAndEndIndexes(fileName, bytes, startIndex, endIndex, Info);
+        private PeerFileSlice GetFileByStartAndEndIndexes(string fileName, List<byte> bytes, int startIndex, int endIndex, PeerInfo owner)
         {
             var list = bytes.GetRange(startIndex, endIndex - startIndex);
-            var file = new PeerFile(fileName, owner, startIndex, endIndex, list.ToArray());
+            var file = new PeerFileSlice(fileName, owner, startIndex, endIndex, list.ToArray());
 
             return file;
         }
@@ -172,7 +177,7 @@ namespace peer
             }
         }
 
-        private void SaveFile(PeerFile file) => files.Add(file);
+        private void SaveFile(PeerFileSlice file) => files.Add(file);
 
         private async Task StartToAccept(string ip, int port)
         {

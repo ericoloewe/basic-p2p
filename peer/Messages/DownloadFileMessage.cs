@@ -4,12 +4,12 @@ using System.Text;
 
 namespace peer.Messages
 {
-    public class UploadFileMessage : Message
+    public class DownloadFileMessage : Message
     {
         public byte[] FileBytes { get { return body; } }
         public string FileName { get { return Encoding.UTF8.GetString(head); } }
 
-        public UploadFileMessage(PeerFile file) : base(PeerCommandType.UPLOAD_FILE)
+        public DownloadFileMessage(PeerFile file) : base(PeerCommandType.DOWNLOAD_FILE)
         {
             var fileHead = Encoding.UTF8.GetBytes(file.ToString());
 
@@ -17,7 +17,7 @@ namespace peer.Messages
             body = file.FileBytes;
         }
 
-        public UploadFileMessage(Message message) : base(message) { }
+        public DownloadFileMessage(Message message) : base(message) { }
 
         public override string ToString() => $"{Type} => {FileName}";
     }

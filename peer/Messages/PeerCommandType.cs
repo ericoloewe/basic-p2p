@@ -14,9 +14,11 @@
         FILE,
         GET_CONNECTIONS,
         LIST_FILES,
+        DOWNLOAD_FILE,
 
         // Client commands
         GET_LIST,
         UPLOAD_FILE,
+        GET_FILE,
     }
 }

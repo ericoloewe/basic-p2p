@@ -30,7 +30,7 @@ namespace peer.Processors
             return promise.Task.Result;
         }
 
-        public void SendFile(PeerFile file)
+        public void SendFile(PeerFileSlice file)
         {
             Send(new FileMessage(file));
         }
@@ -65,6 +65,15 @@ namespace peer.Processors
                         var connectionPeerMessage = new ConnectionMessage(numberOfConnections);
 
                         Send(connectionPeerMessage);
+                        break;
+                    }
+                case PeerCommandType.GET_FILE:
+                    {
+                        var fileMessage = (GetFileMessage)message;
+                        var file = await serverInstance.GetAllSlicesOfFile(fileMessage.FileName);
+                        var downloadFileMessage = new DownloadFileMessage(file);
+
+                        Send(downloadFileMessage);
                         break;
                     }
                 case PeerCommandType.GET_KIND:

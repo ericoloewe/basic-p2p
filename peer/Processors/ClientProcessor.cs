@@ -40,6 +40,19 @@ namespace peer.Processors
             }
         }
 
+        public byte[] DownloadFile(string fileName)
+        {
+            var promise = new TaskCompletionSource<byte[]>();
+
+            Send(new GetFileMessage(fileName));
+
+            OnReceiveFileList = (files) => promise.SetResult(files);
+
+            await promise.Task;
+
+            return promise.Task.Result;
+        }
+
         public async Task<string[]> GetFiles()
         {
             var promise = new TaskCompletionSource<string[]>();

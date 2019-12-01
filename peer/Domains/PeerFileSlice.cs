@@ -1,6 +1,6 @@
 ﻿namespace peer.Domains
 {
-    public class PeerFile
+    public class PeerFileSlice
     {
         public string Name { get; }
         public byte[] Slice { get; }
@@ -9,7 +9,7 @@
         private readonly int startIndex;
         private readonly int endIndex;
 
-        public PeerFile(string fileName, PeerInfo owner, int startIndex, int endIndex, byte[] fileSlice)
+        public PeerFileSlice(string fileName, PeerInfo owner, int startIndex, int endIndex, byte[] fileSlice)
         {
             Name = fileName;
             Owner = owner;
@@ -24,12 +24,12 @@
         }
     }
 
-    public class PeerNewFile
+    public class PeerFile
     {
         public string Name { get; }
         public byte[] FileBytes { get; }
 
-        public PeerNewFile(string fileName, byte[] bytes)
+        public PeerFile(string fileName, byte[] bytes)
         {
             Name = fileName;
             FileBytes = bytes;

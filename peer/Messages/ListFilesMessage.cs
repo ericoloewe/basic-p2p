@@ -19,7 +19,7 @@ namespace peer.Messages
             }
         }
 
-        public ListFilesMessage(IEnumerable<PeerFile> files) : base(PeerCommandType.LIST_FILES)
+        public ListFilesMessage(IEnumerable<PeerFileSlice> files) : base(PeerCommandType.LIST_FILES)
         {
             string fileList = string.Join(SEPARATOR, files.Select(f => f.Name));
 

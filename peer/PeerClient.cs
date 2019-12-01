@@ -38,7 +38,7 @@ namespace peer
 
         public byte[] DownloadFile(string fileName)
         {
-            throw new NotImplementedException();
+            return processor.DownloadFile(fileName);
         }
 
         public async Task<string[]> GetFiles()
@@ -50,7 +50,7 @@ namespace peer
         {
             var bytes = File.ReadAllBytes(filePath);
             var fileName = Path.GetFileName(filePath);
-            var peerNewFile = new PeerNewFile(fileName, bytes);
+            var peerNewFile = new PeerFile(fileName, bytes);
             var message = new UploadFileMessage(peerNewFile);
 
             processor.Send(message);
