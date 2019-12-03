@@ -15,6 +15,8 @@
         GET_CONNECTIONS,
         LIST_FILES,
         DOWNLOAD_FILE,
+        PEER_INFO,
+        GET_INFO,
 
         // Client commands
         GET_LIST,

@@ -22,22 +22,32 @@ namespace peer.Messages
                 case PeerCommandType.CONNECTIONS:
                     message = new ConnectionMessage(message);
                     break;
+                case PeerCommandType.DOWNLOAD_FILE:
+                    message = new DownloadFileMessage(message);
+                    break;
                 case PeerCommandType.FILE:
                     message = new FileMessage(message);
                     break;
-                case PeerCommandType.UPLOAD_FILE:
-                    message = new UploadFileMessage(message);
+                case PeerCommandType.GET_FILE:
+                    message = new GetFileMessage(message);
+                    break;
+                case PeerCommandType.KIND_OF_CONNECTION:
+                    message = new KindOfConnectionMessage(message);
                     break;
                 case PeerCommandType.LIST_FILES:
                     message = new ListFilesMessage(message);
+                    break;
+                case PeerCommandType.PEER_INFO:
+                    message = new PeerInfoMessage(message);
+                    break;
+                case PeerCommandType.UPLOAD_FILE:
+                    message = new UploadFileMessage(message);
                     break;
                 case PeerCommandType.EXIT:
                 case PeerCommandType.GENERIC_ERROR:
                 case PeerCommandType.GET_CONNECTIONS:
                 case PeerCommandType.GET_LIST:
                 case PeerCommandType.STOP:
-                    break;
-                default:
                     break;
             }
 

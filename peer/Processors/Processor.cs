@@ -1,4 +1,5 @@
-﻿using peer.Messages;
+﻿using peer.Domains;
+using peer.Messages;
 using System;
 using System.Linq;
 using System.Net.Sockets;
@@ -12,6 +13,7 @@ namespace peer.Processors
 
         private readonly Task cycle;
         private readonly PeerConnection connection;
+
         private Action<ConnectionType> OnReceiveKindOfConnection;
 
         public Processor(PeerConnection connection)
@@ -49,7 +51,7 @@ namespace peer.Processors
                     }
                 case PeerCommandType.KIND_OF_CONNECTION:
                     {
-                        var kindOfConnectionMessage = new KindOfConnectionMessage(message);
+                        var kindOfConnectionMessage = (KindOfConnectionMessage)message;
 
                         Console.WriteLine($"Received KindOfConnection message => {kindOfConnectionMessage.KindOfConnection}");
 

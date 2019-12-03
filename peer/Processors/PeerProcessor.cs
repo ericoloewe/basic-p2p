@@ -7,14 +7,18 @@ namespace peer.Processors
 {
     public class PeerProcessor : Processor
     {
-        public Action<int> OnReceiveNumberOfConnections { protected get; set; }
-        public int ConnectedPeerId { get { return serverInstance.Info.Id; } }
+        public int ConnectedPeerId { get { return connectedPeerInfo.Id; } }
 
+        private readonly PeerInfo connectedPeerInfo;
         private readonly Peer serverInstance;
+
+        private Action<int> OnReceiveNumberOfConnections;
+        private Action<PeerInfo> OnReceivePeerInfo;
 
         public PeerProcessor(PeerConnection connection, Peer serverInstance) : base(connection)
         {
             this.serverInstance = serverInstance;
+            connectedPeerInfo = GetConnectedPeerInfo();
         }
 
         public async Task<int> GetNumberOfConnections()
@@ -26,6 +30,19 @@ namespace peer.Processors
             OnReceiveNumberOfConnections = (numberOfConnections) => promise.SetResult(numberOfConnections);
 
             await promise.Task;
+
+            return promise.Task.Result;
+        }
+
+        public PeerInfo GetConnectedPeerInfo()
+        {
+            var promise = new TaskCompletionSource<PeerInfo>();
+
+            Send(new Message(PeerCommandType.GET_INFO));
+
+            OnReceivePeerInfo = (info) => promise.SetResult(info);
+
+            promise.Task.Wait();
 
             return promise.Task.Result;
         }
@@ -89,6 +106,18 @@ namespace peer.Processors
                         var listFilesMessage = new ListFilesMessage(files);
 
                         Send(listFilesMessage);
+                        break;
+                    }
+                case PeerCommandType.GET_INFO:
+                    {
+                        Send(new PeerInfoMessage(serverInstance.Info));
+                        break;
+                    }
+                case PeerCommandType.PEER_INFO:
+                    {
+                        var infoMessage = (PeerInfoMessage)message;
+
+                        OnReceivePeerInfo(infoMessage.Info);
                         break;
                     }
                 case PeerCommandType.UPLOAD_FILE:
