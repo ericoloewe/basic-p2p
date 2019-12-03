@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
@@ -108,11 +108,12 @@ namespace peer
 
             foreach (var peerProcessor in peersToShare)
             {
+                currentSlice++;
                 var numberOfConnections = await peerProcessor.GetNumberOfConnections();
 
-                Console.WriteLine($"numberOfConnections {numberOfConnections}");
+                Console.WriteLine($"numberOfConnections: {peerProcessor.ConnectedPeerInfo} => {numberOfConnections}");
 
-                startIndex = fragmentSize * currentSlice;
+                startIndex = fragmentSize * currentSlice + 1;
                 currentSlice += numberOfConnections;
                 endIndex = fragmentSize * (currentSlice + 1);
                 file = GetFileByStartAndEndIndexes(file.Name, bytesAsList, startIndex, endIndex, file.Owner);
@@ -152,7 +153,7 @@ namespace peer
                 connectedPeers.Add(processor);
         }
 
-        private List<PeerProcessor> GetConnectedPeersWithoutId(int peerId) => connectedPeers.Where(cp => cp.ConnectedPeerId != peerId).ToList();
+        private List<PeerProcessor> GetConnectedPeersWithoutId(int peerId) => connectedPeers.Where(cp => cp.ConnectedPeerInfo.Id != peerId).ToList();
 
         private PeerFileSlice GetFileByStartAndEndIndexes(string fileName, List<byte> bytes, int startIndex, int endIndex) => GetFileByStartAndEndIndexes(fileName, bytes, startIndex, endIndex, Info);
         private PeerFileSlice GetFileByStartAndEndIndexes(string fileName, List<byte> bytes, int startIndex, int endIndex, PeerInfo owner)
