@@ -25,11 +25,14 @@ namespace peer.Messages
                 case PeerCommandType.DOWNLOAD_FILE:
                     message = new DownloadFileMessage(message);
                     break;
-                case PeerCommandType.UPLOAD_FILE_SLICE:
-                    message = new UploadFileSliceMessage(message);
+                case PeerCommandType.DOWNLOAD_FILE_SLICE:
+                    message = new DownloadFileSliceMessage(message);
                     break;
                 case PeerCommandType.GET_FILE:
                     message = new GetFileMessage(message);
+                    break;
+                case PeerCommandType.GET_FILE_SLICE:
+                    message = new GetFileSliceMessage(message);
                     break;
                 case PeerCommandType.KIND_OF_CONNECTION:
                     message = new KindOfConnectionMessage(message);
@@ -42,6 +45,9 @@ namespace peer.Messages
                     break;
                 case PeerCommandType.UPLOAD_FILE:
                     message = new UploadFileMessage(message);
+                    break;
+                case PeerCommandType.UPLOAD_FILE_SLICE:
+                    message = new UploadFileSliceMessage(message);
                     break;
                 case PeerCommandType.EXIT:
                 case PeerCommandType.GENERIC_ERROR:

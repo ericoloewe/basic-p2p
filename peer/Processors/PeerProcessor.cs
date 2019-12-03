@@ -11,6 +11,7 @@ namespace peer.Processors
 
         private readonly Peer serverInstance;
 
+        private Action<PeerFileSlice> OnDownloadFileSlice;
         private Action<int> OnReceiveNumberOfConnections;
         private Action<PeerInfo> OnReceivePeerInfo;
 
@@ -18,19 +19,6 @@ namespace peer.Processors
         {
             this.serverInstance = serverInstance;
             ConnectedPeerInfo = GetConnectedPeerInfo();
-        }
-
-        public async Task<int> GetNumberOfConnections()
-        {
-            var promise = new TaskCompletionSource<int>();
-
-            Send(new Message(PeerCommandType.GET_CONNECTIONS));
-
-            OnReceiveNumberOfConnections = (numberOfConnections) => promise.SetResult(numberOfConnections);
-
-            await promise.Task;
-
-            return promise.Task.Result;
         }
 
         public PeerInfo GetConnectedPeerInfo()
@@ -42,6 +30,32 @@ namespace peer.Processors
             OnReceivePeerInfo = (info) => promise.SetResult(info);
 
             promise.Task.Wait();
+
+            return promise.Task.Result;
+        }
+
+        public async Task<PeerFileSlice> GetFileSlice(string fileName)
+        {
+            var promise = new TaskCompletionSource<PeerFileSlice>();
+
+            Send(new GetFileSliceMessage(fileName));
+
+            OnDownloadFileSlice = (info) => promise.SetResult(info);
+
+            await promise.Task;
+
+            return promise.Task.Result;
+        }
+
+        public async Task<int> GetNumberOfConnections()
+        {
+            var promise = new TaskCompletionSource<int>();
+
+            Send(new Message(PeerCommandType.GET_CONNECTIONS));
+
+            OnReceiveNumberOfConnections = (numberOfConnections) => promise.SetResult(numberOfConnections);
+
+            await promise.Task;
 
             return promise.Task.Result;
         }
@@ -64,12 +78,11 @@ namespace peer.Processors
                         OnReceiveNumberOfConnections(conectionsMessage.ConnectionsAmount);
                         break;
                     }
-                case PeerCommandType.UPLOAD_FILE_SLICE:
+                case PeerCommandType.DOWNLOAD_FILE_SLICE:
                     {
-                        var fileMessage = (UploadFileSliceMessage)message;
-                        var file = fileMessage.File;
+                        var downloadFileSliceMessage = (DownloadFileSliceMessage)message;
 
-                        await serverInstance.SaveAndShare(file, ConnectedPeerInfo.Id);
+                        OnDownloadFileSlice(downloadFileSliceMessage.File);
                         break;
                     }
                 case PeerCommandType.GET_CONNECTIONS:
@@ -92,9 +105,9 @@ namespace peer.Processors
                     }
                 case PeerCommandType.GET_FILE_SLICE:
                     {
-                        var fileMessage = (GetFileMessage)message;
-                        var file = await serverInstance.GetSlicesOfFile(fileMessage.FileName);
-                        var downloadFileMessage = new DownloadFileMessage(file);
+                        var fileMessage = (GetFileSliceMessage)message;
+                        var file = await serverInstance.GetSlicesOfFile(fileMessage.FileName, ConnectedPeerInfo.Id);
+                        var downloadFileMessage = new DownloadFileSliceMessage(file);
 
                         Send(downloadFileMessage);
                         break;
@@ -133,6 +146,14 @@ namespace peer.Processors
                         Console.WriteLine($"Receive file to upload => {uploadFileMessage.FileName}, {uploadFileMessage.FileBytes.Length}");
 
                         await serverInstance.UploadFile(uploadFileMessage.FileName, uploadFileMessage.FileBytes);
+                        break;
+                    }
+                case PeerCommandType.UPLOAD_FILE_SLICE:
+                    {
+                        var fileMessage = (UploadFileSliceMessage)message;
+                        var file = fileMessage.File;
+
+                        await serverInstance.SaveAndShare(file, ConnectedPeerInfo.Id);
                         break;
                     }
             }

@@ -18,30 +18,6 @@ namespace peer.Processors
             base.Send(peerMessage);
         }
 
-        protected override async Task ProcessParsedCommand(Message message)
-        {
-            await base.ProcessParsedCommand(message);
-
-            switch (message.Type)
-            {
-                case PeerCommandType.GET_KIND:
-                    {
-                        var kindOfConnectionMessage = new KindOfConnectionMessage(ConnectionType.CLIENT);
-
-                        Send(kindOfConnectionMessage);
-                        break;
-                    }
-
-                case PeerCommandType.LIST_FILES:
-                    {
-                        var listFilesMessage = (ListFilesMessage)message;
-
-                        OnReceiveFileList(listFilesMessage.Files);
-                        break;
-                    }
-            }
-        }
-
         public async Task<byte[]> DownloadFile(string fileName)
         {
             var promise = new TaskCompletionSource<DownloadFileMessage>();
@@ -66,6 +42,38 @@ namespace peer.Processors
             await promise.Task;
 
             return promise.Task.Result;
+        }
+
+        protected override async Task ProcessParsedCommand(Message message)
+        {
+            await base.ProcessParsedCommand(message);
+
+            switch (message.Type)
+            {
+                case PeerCommandType.DOWNLOAD_FILE:
+                    {
+                        var downloadFileMessage = (DownloadFileMessage)message;
+
+                        OnDownloadFile(downloadFileMessage);
+                        break;
+                    }
+
+                case PeerCommandType.GET_KIND:
+                    {
+                        var kindOfConnectionMessage = new KindOfConnectionMessage(ConnectionType.CLIENT);
+
+                        Send(kindOfConnectionMessage);
+                        break;
+                    }
+
+                case PeerCommandType.LIST_FILES:
+                    {
+                        var listFilesMessage = (ListFilesMessage)message;
+
+                        OnReceiveFileList(listFilesMessage.Files);
+                        break;
+                    }
+            }
         }
     }
 }

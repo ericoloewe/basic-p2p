@@ -60,14 +60,37 @@ namespace peer
 
         public async Task<PeerFile> GetAllSlicesOfFile(string fileName)
         {
-            throw new NotImplementedException();
+            var slices = await GetFileSlicesFromPeers(fileName, connectedPeers);
+            var bytes = GetBytesFromSlices(slices);
+
+            return new PeerFile(fileName, bytes.ToArray());
+        }
+
+        private static IList<byte> GetBytesFromSlices(IList<PeerFileSlice> slices)
+        {
+            var bytes = new List<byte>();
+
+            foreach (var slice in slices.OrderBy(s => s.StartIndex))
+            {
+                bytes.AddRange(slice.Slice);
+            }
+
+            return bytes;
         }
 
         public IEnumerable<PeerFileSlice> GetFiles() => files;
 
-        public Task<PeerFile> GetSlicesOfFile(string fileName)
+        private async Task<List<PeerFileSlice>> GetFileSlicesFromPeers(string fileName, IList<PeerProcessor> peers)
         {
-            throw new NotImplementedException();
+            var slices = new List<PeerFileSlice>() { files.First(f => f.Name == fileName) };
+
+            foreach (var peerProcessor in peers)
+            {
+                var slice = await peerProcessor.GetFileSlice(fileName);
+                slices.Add(slice);
+            }
+
+            return slices;
         }
 
         public async Task<int> GetNumberOfConnectionsWithoutProcesor(int requesterPeerId)
@@ -82,6 +105,18 @@ namespace peer
             }
 
             return numberOfConnections;
+        }
+
+        public async Task<PeerFileSlice> GetSlicesOfFile(string fileName, int requesterPeerId)
+        {
+            var peersToRetrieve = GetConnectedPeersWithoutId(requesterPeerId);
+            var slices = await GetFileSlicesFromPeers(fileName, peersToRetrieve);
+            var bytes = GetBytesFromSlices(slices);
+            var orderedSlices = slices.OrderBy(s => s.StartIndex);
+            var firstSlice = orderedSlices.First();
+            var lastSlice = orderedSlices.Last();
+
+            return new PeerFileSlice(fileName, firstSlice.Owner, firstSlice.StartIndex, lastSlice.EndIndex, bytes.ToArray());
         }
 
         public async Task UploadFile(string fileName, byte[] bytes)
