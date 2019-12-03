@@ -48,7 +48,7 @@ namespace peer.Processors
 
         public void SendFile(PeerFileSlice file)
         {
-            Send(new FileMessage(file));
+            Send(new UploadFileSliceMessage(file));
         }
 
         protected override async Task ProcessParsedCommand(Message message)
@@ -64,9 +64,9 @@ namespace peer.Processors
                         OnReceiveNumberOfConnections(conectionsMessage.ConnectionsAmount);
                         break;
                     }
-                case PeerCommandType.FILE:
+                case PeerCommandType.UPLOAD_FILE_SLICE:
                     {
-                        var fileMessage = (FileMessage)message;
+                        var fileMessage = (UploadFileSliceMessage)message;
                         var file = fileMessage.File;
 
                         await serverInstance.SaveAndShare(file, ConnectedPeerInfo.Id);
@@ -85,6 +85,15 @@ namespace peer.Processors
                     {
                         var fileMessage = (GetFileMessage)message;
                         var file = await serverInstance.GetAllSlicesOfFile(fileMessage.FileName);
+                        var downloadFileMessage = new DownloadFileMessage(file);
+
+                        Send(downloadFileMessage);
+                        break;
+                    }
+                case PeerCommandType.GET_FILE_SLICE:
+                    {
+                        var fileMessage = (GetFileMessage)message;
+                        var file = await serverInstance.GetSlicesOfFile(fileMessage.FileName);
                         var downloadFileMessage = new DownloadFileMessage(file);
 
                         Send(downloadFileMessage);

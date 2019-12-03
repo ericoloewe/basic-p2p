@@ -4,11 +4,11 @@ using System.Text;
 
 namespace peer.Messages
 {
-    public class FileMessage : Message
+    public class DownloadFileSliceMessage : Message
     {
         public PeerFileSlice File { get; }
 
-        public FileMessage(PeerFileSlice file) : base(PeerCommandType.FILE)
+        public DownloadFileSliceMessage(PeerFileSlice file) : base(PeerCommandType.DOWNLOAD_FILE_SLICE)
         {
             var fileHead = Encoding.UTF8.GetBytes(file.ToString());
 
@@ -17,7 +17,7 @@ namespace peer.Messages
             File = file;
         }
 
-        public FileMessage(Message message) : base(message)
+        public DownloadFileSliceMessage(Message message) : base(message)
         {
             var fileInfoCommandSplit = Encoding.UTF8.GetString(head).Split(';');
             var fileName = fileInfoCommandSplit[0];

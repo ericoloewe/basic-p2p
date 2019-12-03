@@ -11,16 +11,18 @@
 
         // Peer commands
         CONNECTIONS,
-        FILE,
-        GET_CONNECTIONS,
-        LIST_FILES,
         DOWNLOAD_FILE,
-        PEER_INFO,
+        DOWNLOAD_FILE_SLICE,
+        GET_CONNECTIONS,
+        GET_FILE_SLICE,
         GET_INFO,
+        LIST_FILES,
+        PEER_INFO,
+        UPLOAD_FILE_SLICE,
 
         // Client commands
+        GET_FILE,
         GET_LIST,
         UPLOAD_FILE,
-        GET_FILE,
     }
 }

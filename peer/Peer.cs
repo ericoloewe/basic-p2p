@@ -65,6 +65,11 @@ namespace peer
 
         public IEnumerable<PeerFileSlice> GetFiles() => files;
 
+        public Task<PeerFile> GetSlicesOfFile(string fileName)
+        {
+            throw new NotImplementedException();
+        }
+
         public async Task<int> GetNumberOfConnectionsWithoutProcesor(int requesterPeerId)
         {
             var numberOfConnections = 0;

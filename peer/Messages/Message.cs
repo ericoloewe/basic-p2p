@@ -25,8 +25,8 @@ namespace peer.Messages
                 case PeerCommandType.DOWNLOAD_FILE:
                     message = new DownloadFileMessage(message);
                     break;
-                case PeerCommandType.FILE:
-                    message = new FileMessage(message);
+                case PeerCommandType.UPLOAD_FILE_SLICE:
+                    message = new UploadFileSliceMessage(message);
                     break;
                 case PeerCommandType.GET_FILE:
                     message = new GetFileMessage(message);
