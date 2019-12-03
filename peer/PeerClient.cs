@@ -36,9 +36,9 @@ namespace peer
             processor.Dispose();
         }
 
-        public byte[] DownloadFile(string fileName)
+        public async Task<byte[]> DownloadFile(string fileName)
         {
-            return processor.DownloadFile(fileName);
+            return await processor.DownloadFile(fileName);
         }
 
         public async Task<string[]> GetFiles()

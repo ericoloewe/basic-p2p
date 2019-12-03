@@ -7,6 +7,8 @@ namespace peer.Processors
 {
     public class ClientProcessor : Processor
     {
+        private Action<DownloadFileMessage> OnDownloadFile;
+
         private Action<string[]> OnReceiveFileList;
 
         public ClientProcessor(PeerConnection connection) : base(connection) { }
@@ -40,17 +42,17 @@ namespace peer.Processors
             }
         }
 
-        public byte[] DownloadFile(string fileName)
+        public async Task<byte[]> DownloadFile(string fileName)
         {
-            var promise = new TaskCompletionSource<byte[]>();
+            var promise = new TaskCompletionSource<DownloadFileMessage>();
 
             Send(new GetFileMessage(fileName));
 
-            OnReceiveFileList = (files) => promise.SetResult(files);
+            OnDownloadFile = (files) => promise.SetResult(files);
 
             await promise.Task;
 
-            return promise.Task.Result;
+            return promise.Task.Result.FileBytes;
         }
 
         public async Task<string[]> GetFiles()

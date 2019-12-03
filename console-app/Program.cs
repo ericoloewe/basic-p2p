@@ -94,7 +94,11 @@ namespace console_app
                 throw new ArgumentException($"Invalid fileName or downloadPath");
             }
 
-            var fileBytes = client.DownloadFile(fileName);
+            var task = client.DownloadFile(fileName);
+
+            task.Wait();
+
+            var fileBytes = task.Result;
 
             using (var fs = new FileStream(downloadPath, FileMode.Create, FileAccess.Write))
             {
