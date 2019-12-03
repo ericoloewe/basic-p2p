@@ -159,9 +159,10 @@ namespace peer
                     endIndex = bytesAsList.Count;
                 else
                     endIndex = fragmentSize * (currentSlice + 1) - 1;
-                file = GetFileByStartAndEndIndexes(file, startIndex, endIndex);
 
-                peerProcessor.SendFile(file);
+                var fileToSend = GetFileByStartAndEndIndexes(file, startIndex, endIndex);
+
+                peerProcessor.SendFile(fileToSend);
             }
         }
 
