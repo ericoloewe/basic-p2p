@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
@@ -58,6 +58,11 @@ namespace peer
             listener.Close();
         }
 
+        public async Task<PeerFile> GetAllSlicesOfFile(string fileName)
+        {
+            throw new NotImplementedException();
+        }
+
         public IEnumerable<PeerFileSlice> GetFiles() => files;
 
         public async Task<int> GetNumberOfConnectionsWithoutProcesor(int requesterPeerId)
@@ -82,11 +87,6 @@ namespace peer
             await SaveAndShareForPeers(file, connectedPeers);
         }
 
-        internal async Task<PeerFile> GetAllSlicesOfFile(string fileName)
-        {
-            throw new NotImplementedException();
-        }
-
         public async Task SaveAndShare(PeerFileSlice file, int requesterPeerId)
         {
             var peersToShare = GetConnectedPeersWithoutId(requesterPeerId);
@@ -97,7 +97,7 @@ namespace peer
         public async Task SaveAndShareForPeers(PeerFileSlice file, IList<PeerProcessor> peersToShare)
         {
             var bytesAsList = file.Slice.ToList();
-            int peersAmount = GetNumberOfFragments();
+            int peersAmount = await GetNumberOfFragments(peersToShare) + 1;
             var fragmentSize = (bytesAsList.Count / peersAmount);
             var currentSlice = 0;
 
@@ -113,9 +113,12 @@ namespace peer
 
                 Console.WriteLine($"numberOfConnections: {peerProcessor.ConnectedPeerInfo} => {numberOfConnections}");
 
-                startIndex = fragmentSize * currentSlice + 1;
+                startIndex = fragmentSize * currentSlice;
                 currentSlice += numberOfConnections;
-                endIndex = fragmentSize * (currentSlice + 1);
+                if (peerProcessor == peersToShare.Last())
+                    endIndex = bytesAsList.Count;
+                else
+                    endIndex = fragmentSize * (currentSlice + 1) - 1;
                 file = GetFileByStartAndEndIndexes(file.Name, bytesAsList, startIndex, endIndex, file.Owner);
 
                 peerProcessor.SendFile(file);
@@ -164,7 +167,19 @@ namespace peer
             return file;
         }
 
-        private int GetNumberOfFragments() => 4;
+        private async Task<int> GetNumberOfFragments(IList<PeerProcessor> peersToShare)
+        {
+            var amount = 0;
+
+            foreach (var peerProcessor in peersToShare)
+            {
+                var numberOfConnections = await peerProcessor.GetNumberOfConnections();
+
+                amount += 1 + numberOfConnections;
+            }
+
+            return amount;
+        }
 
         private void HandleStop()
         {

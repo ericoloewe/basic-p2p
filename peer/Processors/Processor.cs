@@ -114,6 +114,11 @@ namespace peer.Processors
                     command = new Message(PeerCommandType.STOP);
                 }
             }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Stack: ");
+                Console.WriteLine(ex);
+            }
 
             return command;
         }
