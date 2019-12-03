@@ -5,22 +5,21 @@
         public string Name { get; }
         public byte[] Slice { get; }
         public PeerInfo Owner { get; }
-
-        private readonly int startIndex;
-        private readonly int endIndex;
+        public int StartIndex { get; }
+        public int EndIndex { get; }
 
         public PeerFileSlice(string fileName, PeerInfo owner, int startIndex, int endIndex, byte[] fileSlice)
         {
             Name = fileName;
             Owner = owner;
-            this.startIndex = startIndex;
-            this.endIndex = endIndex;
+            this.StartIndex = startIndex;
+            this.EndIndex = endIndex;
             Slice = fileSlice;
         }
 
         public override string ToString()
         {
-            return $"{Name};{startIndex};{endIndex};{Owner}";
+            return $"{Name};{StartIndex};{EndIndex};{Owner}";
         }
     }
 

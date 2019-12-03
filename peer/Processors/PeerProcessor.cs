@@ -69,8 +69,6 @@ namespace peer.Processors
                         var fileMessage = (FileMessage)message;
                         var file = fileMessage.File;
 
-                        Console.WriteLine($"Receive file to save and share => {file.Name}, {file.Owner}, {file.Slice.Length}");
-
                         await serverInstance.SaveAndShare(file, ConnectedPeerInfo.Id);
                         break;
                     }

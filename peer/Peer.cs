@@ -82,7 +82,7 @@ namespace peer
         public async Task UploadFile(string fileName, byte[] bytes)
         {
             var bytesAsList = bytes.ToList();
-            var file = GetFileByStartAndEndIndexes(fileName, bytesAsList, 0, bytesAsList.Count);
+            var file = GetFileByStartAndEndIndexes(fileName, bytesAsList, 0, bytesAsList.Count, Info);
 
             await SaveAndShareForPeers(file, connectedPeers);
         }
@@ -104,7 +104,7 @@ namespace peer
             var startIndex = fragmentSize * currentSlice;
             var endIndex = fragmentSize * (currentSlice + 1);
 
-            SaveFile(GetFileByStartAndEndIndexes(file.Name, bytesAsList, startIndex, endIndex, file.Owner));
+            SaveFile(GetFileByStartAndEndIndexes(file, startIndex, endIndex));
 
             foreach (var peerProcessor in peersToShare)
             {
@@ -119,7 +119,7 @@ namespace peer
                     endIndex = bytesAsList.Count;
                 else
                     endIndex = fragmentSize * (currentSlice + 1) - 1;
-                file = GetFileByStartAndEndIndexes(file.Name, bytesAsList, startIndex, endIndex, file.Owner);
+                file = GetFileByStartAndEndIndexes(file, startIndex, endIndex);
 
                 peerProcessor.SendFile(file);
             }
@@ -158,7 +158,16 @@ namespace peer
 
         private List<PeerProcessor> GetConnectedPeersWithoutId(int peerId) => connectedPeers.Where(cp => cp.ConnectedPeerInfo.Id != peerId).ToList();
 
-        private PeerFileSlice GetFileByStartAndEndIndexes(string fileName, List<byte> bytes, int startIndex, int endIndex) => GetFileByStartAndEndIndexes(fileName, bytes, startIndex, endIndex, Info);
+        private PeerFileSlice GetFileByStartAndEndIndexes(PeerFileSlice file, int startIndex, int endIndex)
+        {
+            var realStartIndex = file.StartIndex + startIndex;
+            var realEndIndex = realStartIndex + (endIndex - startIndex);
+            var list = file.Slice.ToList().GetRange(startIndex, endIndex - startIndex);
+            var slice = new PeerFileSlice(file.Name, file.Owner, realStartIndex, realEndIndex, list.ToArray());
+
+            return slice;
+        }
+
         private PeerFileSlice GetFileByStartAndEndIndexes(string fileName, List<byte> bytes, int startIndex, int endIndex, PeerInfo owner)
         {
             var list = bytes.GetRange(startIndex, endIndex - startIndex);
@@ -193,7 +202,11 @@ namespace peer
             }
         }
 
-        private void SaveFile(PeerFileSlice file) => files.Add(file);
+        private void SaveFile(PeerFileSlice file)
+        {
+            Console.WriteLine($"Saving file => {file}");
+            files.Add(file);
+        }
 
         private async Task StartToAccept(string ip, int port)
         {
